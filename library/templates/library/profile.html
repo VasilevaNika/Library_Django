@@ -1,0 +1,66 @@
+{% extends 'library/base.html' %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-4">
+        <div class="card shadow-sm">
+            <div class="card-body text-center" style="background: linear-gradient(135deg, #EBF5FB, #D6EAF8);">
+                <div class="display-1 mb-3">👤</div>
+                <h4 class="text-dark">{{ user.username }}</h4>
+                <p class="text-dark">Добро пожаловать в ваш личный кабинет</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-8">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="text-dark">Мои избранные книги</h2>
+            <span class="badge bg-primary fs-6">{{ favorite_books.count }} книг</span>
+        </div>
+
+        {% if favorite_books %}
+        <div class="row">
+            {% for book in favorite_books %}
+            <div class="col-lg-6 mb-4">
+                <div class="card h-100 shadow-sm">
+                    <div class="row g-0">
+                        <div class="col-md-4">
+                            {% if book.cover %}
+                            <img src="{{ book.cover.url }}" class="img-fluid rounded-start h-100 w-100" style="object-fit: cover;" alt="{{ book.title }}">
+                            {% else %}
+                            <div class="h-100 d-flex align-items-center justify-content-center" style="background: linear-gradient(135deg, #EBF5FB, #D6EAF8);">
+                                <span class="text-muted">📖</span>
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-8">
+                            <div class="card-body">
+                                <h5 class="card-title text-dark">{{ book.title }}</h5>
+                                <p class="card-text">
+                                    <small class="text-muted">{{ book.author.name }}</small>
+                                </p>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <a href="/books/{{ book.pk }}/" class="btn btn-sm btn-outline-primary">Подробнее</a>
+                                    <form method="post" action="/toggle_favorite/{{ book.id }}/">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">Удалить</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <div class="display-1 text-muted mb-3">📚</div>
+            <h3 class="text-dark">У вас пока нет избранных книг</h3>
+            <p class="text-muted mb-4">Найдите интересные книги и добавьте их в избранное</p>
+            <a href="/books/" class="btn btn-primary btn-lg">Перейти к каталогу</a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

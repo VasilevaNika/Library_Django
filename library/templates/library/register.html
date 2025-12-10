@@ -1,0 +1,72 @@
+{% extends 'library/base.html' %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card shadow-sm">
+            <div class="card-header">
+                <h4 class="mb-0 text-center">Регистрация в библиотеке</h4>
+            </div>
+            <div class="card-body">
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    {% if form.errors %}
+                        <div class="alert alert-danger">
+                            <strong>Пожалуйста, исправьте ошибки:</strong>
+                            <ul>
+                                {% for field, errors in form.errors.items %}
+                                    {% for error in errors %}
+                                        <li>{{ error }}</li>
+                                    {% endfor %}
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    {% endif %}
+                    
+                    <div class="mb-3">
+                        <label for="id_username" class="form-label">Имя пользователя</label>
+                        <input type="text" class="form-control" id="id_username" name="username" 
+                               value="{{ form.username.value|default:'' }}" required>
+                        <div class="form-text">Обязательное поле. Не более 150 символов. Только буквы, цифры и @/./+/-/_.</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="id_password1" class="form-label">Пароль</label>
+                        <input type="password" class="form-control" id="id_password1" name="password1" required>
+                        <div class="form-text">
+                            <ul>
+                                <li>Пароль не должен быть слишком похож на другую вашу личную информацию.</li>
+                                <li>Пароль должен содержать как минимум 8 символов.</li>
+                                <li>Пароль не должен быть слишком простым и распространенным.</li>
+                                <li>Пароль не может состоять только из цифр.</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="id_password2" class="form-label">Подтверждение пароля</label>
+                        <input type="password" class="form-control" id="id_password2" name="password2" required>
+                        <div class="form-text">Для подтверждения введите, пожалуйста, пароль ещё раз.</div>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary w-100 mb-3">Зарегистрироваться</button>
+                </form>
+                
+                <div class="text-center">
+                    <p class="mb-0">Уже есть аккаунт? <a href="{% url 'login' %}">Войдите</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

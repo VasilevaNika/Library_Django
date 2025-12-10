@@ -1,0 +1,167 @@
+{% extends 'library/base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/">Главная</a></li>
+            <li class="breadcrumb-item"><a href="/books/">Книги</a></li>
+            <li class="breadcrumb-item"><a href="/books/{{ book.pk }}/">{{ book.title }}</a></li>
+            <li class="breadcrumb-item active">Чтение</li>
+        </ol>
+    </nav>
+
+    <div class="row">
+        <div class="col-md-3">
+            <div class="card shadow-sm">
+                <div class="card-body text-center">
+                    {% if book.cover %}
+                    <img src="{{ book.cover.url }}" class="img-fluid mb-3" alt="{{ book.title }}">
+                    {% else %}
+                    <div class="bg-light p-4 mb-3 rounded">
+                        <h5>{{ book.title }}</h5>
+                    </div>
+                    {% endif %}
+                    <h5 class="text-dark">{{ book.title }}</h5>
+                    <p class="text-muted">{{ book.author.name }}</p>
+                    
+                    <div class="mb-3">
+                        {% for genre in book.genres.all %}
+                            <span class="badge bg-primary">{{ genre.name }}</span>
+                        {% endfor %}
+                    </div>
+                    
+                    <a href="/books/{{ book.pk }}/" class="btn btn-outline-primary btn-sm w-100 mb-2">← Назад</a>
+                    
+                    {% if book.book_file %}
+                    <a href="{{ book.book_file.url }}" class="btn btn-success btn-sm w-100" download>
+                        📥 Скачать
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-9">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0">Чтение: {{ book.title }}</h4>
+                    {% if book.book_file %}
+                    <span class="badge bg-light text-dark">{{ book.book_file.name|slice:"-4:"|upper }}</span>
+                    {% endif %}
+                </div>
+                <div class="card-body p-0">
+                    {% if error %}
+                        <div class="alert alert-warning m-3">
+                            <h5>Ошибка</h5>
+                            {{ error }}
+                        </div>
+                    {% elif is_pdf %}
+                        <!-- PDF просмотр -->
+                        <div class="pdf-viewer">
+                            {% if book.book_file %}
+                            <iframe 
+                                src="{{ book.book_file.url }}#toolbar=0" 
+                                width="100%" 
+                                height="700px" 
+                                style="border: none;"
+                                title="Чтение книги {{ book.title }}"
+                            >
+                                <div class="alert alert-info m-3">
+                                    <p>Ваш браузер не поддерживает встроенные PDF. 
+                                    <a href="{{ book.book_file.url }}" class="btn btn-primary">Скачайте книгу</a></p>
+                                </div>
+                            </iframe>
+                            {% endif %}
+                        </div>
+                    {% else %}
+                        <!-- Текстовый просмотр -->
+                        <div class="p-4">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <div class="btn-group">
+                                    <button class="btn btn-outline-secondary btn-sm" onclick="changeFontSize(-1)">A-</button>
+                                    <button class="btn btn-outline-secondary btn-sm" onclick="changeFontSize(0)">A</button>
+                                    <button class="btn btn-outline-secondary btn-sm" onclick="changeFontSize(1)">A+</button>
+                                </div>
+                                <span class="text-muted" id="pageInfo"></span>
+                            </div>
+                            
+                            <div id="textContent" class="book-content border rounded p-4 bg-light">
+                                {{ content|linebreaks }}
+                            </div>
+                            
+                            <div class="d-flex justify-content-between mt-4">
+                                <button class="btn btn-primary" onclick="previousPage()">← Назад</button>
+                                <button class="btn btn-primary" onclick="nextPage()">Вперед →</button>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if not is_pdf and not error and content %}
+<script>
+let currentPage = 1;
+let totalPages = 1;
+let pages = [];
+
+function paginateText() {
+    const content = document.getElementById('textContent');
+    const text = content.textContent;
+    const words = text.split(' ');
+    const wordsPerPage = 400;
+    
+    pages = [];
+    for (let i = 0; i < words.length; i += wordsPerPage) {
+        pages.push(words.slice(i, i + wordsPerPage).join(' '));
+    }
+    
+    totalPages = pages.length;
+    showPage(currentPage);
+}
+
+function showPage(page) {
+    if (page < 1) page = 1;
+    if (page > totalPages) page = totalPages;
+    
+    currentPage = page;
+    document.getElementById('textContent').innerHTML = pages[page - 1];
+    document.getElementById('pageInfo').textContent = `Страница ${page} из ${totalPages}`;
+}
+
+function nextPage() {
+    showPage(currentPage + 1);
+}
+
+function previousPage() {
+    showPage(currentPage - 1);
+}
+
+function changeFontSize(delta) {
+    const content = document.getElementById('textContent');
+    const currentSize = parseInt(window.getComputedStyle(content).fontSize);
+    if (delta === 0) {
+        content.style.fontSize = '16px';
+    } else {
+        content.style.fontSize = (currentSize + delta) + 'px';
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    paginateText();
+});
+</script>
+
+<style>
+.book-content {
+    font-size: 16px;
+    line-height: 1.6;
+    min-height: 500px;
+    text-align: justify;
+}
+</style>
+{% endif %}
+{% endblock %}
