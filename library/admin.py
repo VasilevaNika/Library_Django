@@ -21,7 +21,6 @@ class BookAdmin(admin.ModelAdmin):
     filter_horizontal = ['genres']
     list_per_page = 20
     
-    # Обновленные fieldsets с полем для файла
     fieldsets = [
         ('Основная информация', {
             'fields': ['title', 'author', 'description', 'cover']

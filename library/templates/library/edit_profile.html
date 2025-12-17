@@ -1,0 +1,349 @@
+{% extends 'library/base.html' %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <div class="card shadow-lg">
+                <div class="card-header bg-primary text-white">
+                    <h2 class="mb-0">
+                        <i class="bi bi-person-gear"></i> Редактирование профиля
+                    </h2>
+                </div>
+                
+                <div class="card-body">
+                    <div class="text-center mb-4 p-4 rounded preview-section">
+                        <h5 class="text-muted mb-3">
+                            <i class="bi bi-eye"></i> Предпросмотр имени
+                        </h5>
+                        <div id="name-preview" class="preview-name">
+                            {% if user.first_name or user.last_name %}
+                                {{ user.first_name }} {{ user.last_name }}
+                            {% else %}
+                                Ваше имя будет здесь
+                            {% endif %}
+                        </div>
+                        <div class="preview-underline"></div>
+                        <small class="text-muted">Так будет выглядеть ваше имя в профиле</small>
+                    </div>
+                    
+                    <form method="POST" enctype="multipart/form-data">
+                        {% csrf_token %}
+
+                        <div class="mb-4">
+                            <h5 class="border-bottom pb-2 mb-3">
+                                <i class="bi bi-person-badge"></i> Основная информация
+                            </h5>
+                            
+                            <div class="mb-3">
+                                {{ user_form.username.label_tag }}
+                                <div class="input-group">
+                                    <span class="input-group-text">
+                                        <i class="bi bi-at"></i>
+                                    </span>
+                                    {{ user_form.username }}
+                                </div>
+                                {% if user_form.username.errors %}
+                                    <div class="text-danger small">
+                                        {{ user_form.username.errors }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    {{ user_form.first_name.label_tag }}
+                                    <div class="input-group">
+                                        <span class="input-group-text">
+                                            <i class="bi bi-person"></i>
+                                        </span>
+                                        {{ user_form.first_name }}
+                                    </div>
+                                    <small class="text-muted">
+                                        Имя будет отображаться в вашем профиле
+                                    </small>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    {{ user_form.last_name.label_tag }}
+                                    <div class="input-group">
+                                        <span class="input-group-text">
+                                            <i class="bi bi-person"></i>
+                                        </span>
+                                        {{ user_form.last_name }}
+                                    </div>
+                                    <small class="text-muted">
+                                        Фамилия будет отображаться в вашем профиле
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <h5 class="border-bottom pb-2 mb-3">Контактная информация</h5>
+                            
+                            <div class="mb-3">
+                                {{ user_form.email.label_tag }}
+                                {{ user_form.email }}
+                                <small class="text-muted">
+                                    Этот email будет использоваться для входа в систему
+                                </small>
+                                {% if user_form.email.errors %}
+                                    <div class="text-danger small">{{ user_form.email.errors }}</div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="mb-3">
+                                {{ profile_form.email.label_tag }}
+                                {{ profile_form.email }}
+                                <small class="text-muted">
+                                    Дополнительный email (необязательно)
+                                </small>
+                                {% if profile_form.email.errors %}
+                                    <div class="text-danger small">{{ profile_form.email.errors }}</div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="id_phone_number" class="form-label">Номер телефона:</label>
+                                <input type="tel" 
+                                       name="phone_number" 
+                                       value="{{ profile_form.phone_number.value|default_if_none:'' }}" 
+                                       class="form-control" 
+                                       id="id_phone_number" 
+                                       placeholder="+7 (999) 123-45-67">
+                                {% if profile_form.phone_number.errors %}
+                                    <div class="text-danger small">{{ profile_form.phone_number.errors }}</div>
+                                {% endif %}
+                                <small class="text-muted">Формат: +79991234567</small>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <h5 class="border-bottom pb-2 mb-3">Личная информация</h5>
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    {{ profile_form.birth_date.label_tag }}
+                                    {{ profile_form.birth_date }}
+                                    {% if profile.age %}
+                                        <div class="mt-1">
+                                            <small class="text-muted">
+                                                Возраст: {{ profile.age }} лет
+                                            </small>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                {{ profile_form.bio.label_tag }}
+                                {{ profile_form.bio }}
+                                <small class="text-muted d-block">
+                                    Осталось символов: <span id="char-count">500</span>
+                                </small>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between mt-4">
+                            <a href="{% url 'profile' %}" class="btn btn-secondary">
+                                <i class="bi bi-arrow-left"></i> Назад к профилю
+                            </a>
+                            
+                            <div>
+                                <button type="submit" class="btn btn-success">
+                                    <i class="bi bi-check-circle"></i> Сохранить изменения
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                
+                <div class="card-footer text-muted">
+                    <small>
+                        <i class="bi bi-info-circle"></i>
+                        Последнее обновление: 
+                        {% if profile.updated_at %}
+                            {{ profile.updated_at|date:"d.m.Y H:i" }}
+                        {% else %}
+                            еще не обновлялось
+                        {% endif %}
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const bioField = document.querySelector('#id_bio');
+    const charCount = document.querySelector('#char-count');
+    const maxLength = 500;
+    
+    const firstNameField = document.querySelector('#id_first_name');
+    const lastNameField = document.querySelector('#id_last_name');
+    const namePreview = document.querySelector('#name-preview');
+    
+    function updateCharCount() {
+        if (bioField && charCount) {
+            const currentLength = bioField.value.length;
+            const remaining = maxLength - currentLength;
+            charCount.textContent = remaining;
+            
+            if (remaining < 50) {
+                charCount.style.color = '#dc3545';
+            } else if (remaining < 100) {
+                charCount.style.color = '#ffc107';
+            } else {
+                charCount.style.color = '#28a745';
+            }
+        }
+    }
+    
+    function updateNamePreview() {
+        const firstName = firstNameField ? firstNameField.value.trim() : '';
+        const lastName = lastNameField ? lastNameField.value.trim() : '';
+        
+        if (firstName || lastName) {
+            namePreview.textContent = firstName + ' ' + lastName;
+        } else {
+            namePreview.textContent = 'Ваше имя будет здесь';
+        }
+    }
+
+    if (bioField && charCount) {
+        bioField.addEventListener('input', updateCharCount);
+        updateCharCount(); 
+    }
+    
+    if (firstNameField) {
+        firstNameField.addEventListener('input', updateNamePreview);
+    }
+    
+    if (lastNameField) {
+        lastNameField.addEventListener('input', updateNamePreview);
+    }
+    
+    updateNamePreview();
+    
+    const form = document.querySelector('form');
+    let formChanged = false;
+    
+    form.addEventListener('change', function() {
+        formChanged = true;
+    });
+    
+    form.addEventListener('input', function() {
+        formChanged = true;
+    });
+    
+    form.addEventListener('submit', function() {
+        formChanged = false;
+    });
+    
+    window.addEventListener('beforeunload', function(e) {
+        if (formChanged) {
+            e.preventDefault();
+            e.returnValue = 'У вас есть несохраненные изменения. Вы уверены, что хотите уйти?';
+        }
+    });
+});
+</script>
+
+<style>
+.form-control:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+}
+
+.card {
+    border-radius: 15px;
+    overflow: hidden;
+}
+
+.form-label {
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 0.5rem;
+}
+
+h5 {
+    color: #2c3e50;
+}
+
+.border-bottom {
+    border-color: #667eea !important;
+}
+
+.btn {
+    transition: all 0.3s;
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.btn-success {
+    background: linear-gradient(135deg, #2ecc71, #27ae60);
+    border: none;
+}
+
+.btn-warning {
+    background: linear-gradient(135deg, #f39c12, #e67e22);
+    border: none;
+}
+
+.btn-secondary {
+    background: linear-gradient(135deg, #95a5a6, #7f8c8d);
+    border: none;
+}
+
+.card-header {
+    background: linear-gradient(135deg, #667eea, #764ba2) !important;
+}
+
+#char-count {
+    font-weight: bold;
+}
+
+.preview-section {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border: 1px solid rgba(102, 126, 234, 0.1);
+}
+
+.preview-name {
+    font-size: 2rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    margin: 10px 0;
+    text-align: center;
+}
+
+.preview-underline {
+    width: 80px;
+    height: 3px;
+    background: linear-gradient(90deg, #667eea, #764ba2);
+    margin: 8px auto;
+    border-radius: 2px;
+}
+
+.input-group-text {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    border: none;
+}
+
+.input-group .form-control {
+    border-left: none;
+}
+
+.input-group .form-control:focus {
+    box-shadow: none;
+    border-color: #ced4da;
+}
+</style>
+{% endblock %}

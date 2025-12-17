@@ -1,16 +1,19 @@
 {% extends 'library/base.html' %}
 
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-6">
-        <div class="card shadow-sm">
-            <div class="card-header">
-                <h4 class="mb-0 text-center">Вход в библиотеку</h4>
+<div class="row justify-content-center mt-5">
+    <div class="col-md-5">
+        <div class="card">
+            <div class="card-header text-center">
+                <h3 class="mb-0 gradient-text">
+                    <i class="bi bi-box-arrow-in-right"></i> Вход в библиотеку
+                </h3>
             </div>
-            <div class="card-body">
+            <div class="card-body p-4">
                 {% if messages %}
                     {% for message in messages %}
                         <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                            <i class="bi bi-{% if message.tags == 'success' %}check-circle{% else %}exclamation-circle{% endif %}"></i>
                             {{ message }}
                             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                         </div>
@@ -22,27 +25,90 @@
                     
                     {% if form.errors %}
                         <div class="alert alert-danger">
+                            <i class="bi bi-exclamation-triangle"></i>
                             Неверное имя пользователя или пароль.
                         </div>
                     {% endif %}
                     
-                    <div class="mb-3">
-                        <label for="id_username" class="form-label">Имя пользователя</label>
-                        <input type="text" class="form-control" id="id_username" name="username" 
-                               value="{{ form.username.value|default:'' }}" required>
+                    <div class="mb-4">
+                        <label for="id_username" class="form-label">
+                            <i class="bi bi-person"></i> Имя пользователя
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="bi bi-at"></i>
+                            </span>
+                            <input type="text" class="form-control" id="id_username" name="username" 
+                                   value="{{ form.username.value|default:'' }}" 
+                                   placeholder="Введите имя пользователя"
+                                   required>
+                        </div>
                     </div>
-                    <div class="mb-3">
-                        <label for="id_password" class="form-label">Пароль</label>
-                        <input type="password" class="form-control" id="id_password" name="password" required>
+                    
+                    <div class="mb-4">
+                        <label for="id_password" class="form-label">
+                            <i class="bi bi-key"></i> Пароль
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="bi bi-lock"></i>
+                            </span>
+                            <input type="password" class="form-control" id="id_password" name="password" 
+                                   placeholder="Введите пароль"
+                                   required>
+                            <button class="btn btn-outline-secondary" type="button" id="togglePassword">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                        </div>
                     </div>
-                    <button type="submit" class="btn btn-primary w-100 mb-3">Войти</button>
+                    
+                    <button type="submit" class="btn btn-primary w-100 mb-3 py-2 fs-5">
+                        <i class="bi bi-door-open"></i> Войти
+                    </button>
                 </form>
                 
-                <div class="text-center">
-                    <p class="mb-0">Нет аккаунта? <a href="{% url 'register' %}">Зарегистрируйтесь</a></p>
+                <div class="text-center mt-4 pt-3 border-top">
+                    <p class="text-muted mb-2">Нет аккаунта?</p>
+                    <a href="{% url 'register' %}" class="btn btn-outline-primary">
+                        <i class="bi bi-person-plus"></i> Зарегистрироваться
+                    </a>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const togglePassword = document.getElementById('togglePassword');
+    const passwordField = document.getElementById('id_password');
+    
+    if (togglePassword && passwordField) {
+        togglePassword.addEventListener('click', function() {
+            const type = passwordField.getAttribute('type') === 'password' ? 'text' : 'password';
+            passwordField.setAttribute('type', type);
+            this.innerHTML = type === 'password' ? '<i class="bi bi-eye"></i>' : '<i class="bi bi-eye-slash"></i>';
+        });
+    }
+});
+</script>
+
+<style>
+.card {
+    border-radius: 20px;
+    overflow: hidden;
+}
+
+.card-header {
+    padding: 1.5rem;
+}
+
+.alert {
+    border-radius: 10px;
+}
+
+#togglePassword {
+    border-radius: 0 10px 10px 0;
+}
+</style>
 {% endblock %}

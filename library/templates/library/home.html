@@ -6,76 +6,296 @@
         <div class="jumbotron p-5 rounded" style="background: linear-gradient(135deg, #EBF5FB, #D6EAF8);">
             <h1 class="display-4 text-dark">Добро пожаловать в онлайн-библиотеку!</h1>
             <p class="lead text-dark">Откройте для себя мир книг. Читайте, сохраняйте, наслаждайтесь.</p>
-            
-            <!-- Поиск -->
+
             <form method="get" action="/books/" class="mb-4">
                 <div class="input-group">
                     <input type="text" name="q" class="form-control" placeholder="Найти книгу или автора...">
-                    <button class="btn btn-primary" type="submit">Найти</button>
+                    <button class="btn btn-primary" type="submit">
+                        <i class="bi bi-search"></i> Найти
+                    </button>
                 </div>
             </form>
         </div>
 
-        <h2 class="mt-5 text-dark">Последние добавленные книги</h2>
-        <div class="row">
-            {% for book in latest_books %}
-            <div class="col-md-4 mb-4">
-                <div class="card h-100 shadow-sm">
-                    <!-- Заменяем фото на название книги -->
-                    <div class="card-img-top book-cover d-flex align-items-center justify-content-center text-center" 
-                         style="background: linear-gradient(135deg, #EBF5FB, #D6EAF8); min-height: 200px; padding: 15px;">
-                        <h5 class="text-dark fw-bold">{{ book.title }}</h5>
-                    </div>
-                    <div class="card-body">
-                        <h5 class="card-title">{{ book.title }}</h5>
-                        <p class="card-text text-muted">{{ book.author.name }}</p>
-                        <div class="mb-2">
-                            {% for genre in book.genres.all %}
-                                <span class="badge bg-primary">{{ genre.name }}</span>
-                            {% endfor %}
+        <div class="last-added mt-5">
+            <h2 class="text-dark mb-4 pb-2 border-bottom border-primary">
+                <i class="bi bi-clock-history"></i> Последние добавленные книги
+            </h2>
+            <div class="row">
+                {% for book in last_three_books %}
+                <div class="col-md-4 mb-4">
+                    <div class="card h-100 shadow-sm">
+                        {% if book.cover %}
+                            <img src="{{ book.cover.url }}" 
+                                 class="card-img-top book-cover" 
+                                 alt="{{ book.title }}"
+                                 style="height: 250px; object-fit: cover; width: 100%;">
+                        {% else %}
+                            <div class="card-img-top book-cover d-flex align-items-center justify-content-center text-center gradient-classic" 
+                                 style="min-height: 250px; padding: 15px; width: 100%;">
+                                <h4 class="text-dark fw-bold">{{ book.title }}</h4>
+                            </div>
+                        {% endif %}
+                        <div class="card-body">
+                            <h5 class="card-title">{{ book.title }}</h5>
+                            <p class="card-text text-muted">
+                                <i class="bi bi-person"></i> {{ book.author.name }}
+                            </p>
+                            <div class="mb-2">
+                                {% for genre in book.genres.all|slice:":3" %}
+                                    <span class="badge 
+                                        {% if genre.name == 'Классика' %}bg-success
+                                        {% elif genre.name == 'Драма' %}bg-danger
+                                        {% elif genre.name == 'Комедия' %}bg-warning text-dark
+                                        {% elif genre.name == 'Сатира' %}bg-info
+                                        {% elif genre.name == 'Фантастика' %}bg-primary
+                                        {% elif genre.name == 'Роман' %}bg-secondary
+                                        {% else %}bg-primary{% endif %} me-1">
+                                        {{ genre.name }}
+                                    </span>
+                                {% endfor %}
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <a href="/books/{{ book.pk }}/" class="btn btn-primary btn-sm">
+                                    <i class="bi bi-info-circle"></i> Подробнее
+                                </a>
+                                {% if user.is_authenticated %}
+                                <form method="post" action="{% url 'toggle_favorite' book.id %}" class="d-inline">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-link text-decoration-none p-0" 
+                                            title="{% if book in user.favorite_books.all %}Удалить из избранного{% else %}Добавить в избранное{% endif %}">
+                                        <i class="bi {% if book in user.favorite_books.all %}bi-heart-fill text-danger{% else %}bi-heart text-muted{% endif %} fs-5"></i>
+                                    </button>
+                                </form>
+                                {% endif %}
+                            </div>
                         </div>
-                        <a href="/books/{{ book.pk }}/" class="btn btn-primary btn-sm">Подробнее</a>
                     </div>
                 </div>
-            </div>
-            {% empty %}
-            <div class="col-12">
-                <div class="alert alert-info">
-                    Книги пока не добавлены в библиотеку.
+                {% empty %}
+                <div class="col-12">
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle"></i> Книги пока не добавлены в библиотеку.
+                    </div>
                 </div>
+                {% endfor %}
             </div>
-            {% endfor %}
+        </div>
+
+        <div class="recommendations mt-5">
+            <h2 class="text-dark mb-4 pb-2 border-bottom border-success">
+                <i class="bi bi-stars"></i> Рекомендации для вас
+            </h2>
+            
+            {% if user.is_authenticated %}
+                {% if user_favorite_genres %}
+                    <div class="user-genres mb-4 p-3 rounded" style="background: #e8f4fc; border-left: 4px solid #3498db;">
+                        <p class="mb-0 text-dark">
+                            <strong><i class="bi bi-tags"></i> На основе ваших предпочтений:</strong> 
+                            {% for genre in user_favorite_genres|slice:":5" %}
+                                <span class="badge 
+                                    {% if genre.name == 'Классика' %}bg-success
+                                    {% elif genre.name == 'Драма' %}bg-danger
+                                    {% elif genre.name == 'Комедия' %}bg-warning text-dark
+                                    {% elif genre.name == 'Сатира' %}bg-info
+                                    {% elif genre.name == 'Фантастика' %}bg-primary
+                                    {% elif genre.name == 'Роман' %}bg-secondary
+                                    {% else %}bg-primary{% endif %} me-1 mb-1">
+                                    {{ genre.name }}
+                                </span>
+                            {% endfor %}
+                            {% if user_favorite_genres|length > 5 %}
+                                <span class="badge bg-secondary">+{{ user_favorite_genres|length|add:"-5" }} еще</span>
+                            {% endif %}
+                        </p>
+                    </div>
+                {% endif %}
+                
+                {% if recommended_books %}
+                    <div class="row">
+                        {% for book in recommended_books|slice:":3" %}
+                        <div class="col-md-4 mb-4">
+                            <div class="card h-100 shadow-sm border-success border-top">
+                                {% if book.cover %}
+                                    <img src="{{ book.cover.url }}" 
+                                         class="card-img-top book-cover" 
+                                         alt="{{ book.title }}"
+                                         style="height: 250px; object-fit: cover; width: 100%;">
+                                {% else %}
+                                    <div class="card-img-top book-cover d-flex align-items-center justify-content-center text-center gradient-fiction" 
+                                         style="min-height: 250px; padding: 15px; width: 100%;">
+                                        <h5 class="text-dark fw-bold">{{ book.title }}</h5>
+                                    </div>
+                                {% endif %}
+                                <div class="card-body">
+                                    <h5 class="card-title">{{ book.title }}</h5>
+                                    <p class="card-text text-muted">
+                                        <i class="bi bi-person"></i> {{ book.author.name }}
+                                    </p>
+                                    <div class="mb-3">
+                                        {% for genre in book.genres.all|slice:":3" %}
+                                            <span class="badge 
+                                                {% if genre.name == 'Классика' %}bg-success
+                                                {% elif genre.name == 'Драма' %}bg-danger
+                                                {% elif genre.name == 'Комедия' %}bg-warning text-dark
+                                                {% elif genre.name == 'Сатира' %}bg-info
+                                                {% elif genre.name == 'Фантастика' %}bg-primary
+                                                {% elif genre.name == 'Роман' %}bg-secondary
+                                                {% else %}bg-primary{% endif %} me-1">
+                                                {{ genre.name }}
+                                            </span>
+                                        {% endfor %}
+                                    </div>
+                                    
+                                    <p class="rec-reason mb-2" style="color: #27ae60; font-size: 0.9rem;">
+                                        <i class="bi bi-lightbulb"></i>
+                                        {% with fav_books=user.favorite_books.all|slice:":1" %}
+                                            {% for fav_book in fav_books %}
+                                                {% if book.author == fav_book.author %}
+                                                    Тот же автор, что и "{{ fav_book.title }}"
+                                                {% else %}
+                                                    Популярная книга среди наших читателей
+                                                {% endif %}
+                                            {% empty %}
+                                                Популярная книга среди наших читателей
+                                            {% endfor %}
+                                        {% endwith %}
+                                    </p>
+                                    
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <a href="/books/{{ book.pk }}/" class="btn btn-primary btn-sm">
+                                            <i class="bi bi-info-circle"></i> Подробнее
+                                        </a>
+                                        
+                                        {% if user.is_authenticated %}
+                                        <form method="post" action="{% url 'toggle_favorite' book.id %}" class="d-inline">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-link text-decoration-none p-0" 
+                                                    title="{% if book in user.favorite_books.all %}Удалить из избранного{% else %}Добавить в избранное{% endif %}">
+                                                <i class="bi {% if book in user.favorite_books.all %}bi-heart-fill text-danger{% else %}bi-heart text-muted{% endif %} fs-5"></i>
+                                            </button>
+                                        </form>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="alert alert-warning">
+                        <h5 class="alert-heading">
+                            <i class="bi bi-exclamation-triangle"></i> Нет рекомендаций
+                        </h5>
+                        <p class="mb-0">Добавьте книги в избранное, чтобы получать персонализированные рекомендации.</p>
+                        <hr>
+                        <a href="/books/" class="btn btn-primary">
+                            <i class="bi bi-book"></i> Посмотреть все книги
+                        </a>
+                    </div>
+                {% endif %}
+            {% else %}
+                <div class="alert alert-info">
+                    <h5 class="alert-heading">
+                        <i class="bi bi-person-circle"></i> Войдите для получения персонализированных рекомендаций
+                    </h5>
+                    <p class="mb-0">Система подберет книги на основе ваших предпочтений и избранного.</p>
+                    <hr>
+                    <a href="{% url 'login' %}" class="btn btn-primary">
+                        <i class="bi bi-box-arrow-in-right"></i> Войти
+                    </a>
+                    <a href="{% url 'register' %}" class="btn btn-outline-primary">
+                        <i class="bi bi-person-plus"></i> Зарегистрироваться
+                    </a>
+                </div>
+            {% endif %}
         </div>
     </div>
     
     <div class="col-lg-4">
         <div class="card shadow-sm">
-            <div class="card-header">
-                <h5 class="mb-0 text-dark">🔍 Быстрый поиск по жанрам</h5>
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">
+                    <i class="bi bi-search"></i> Быстрый поиск по жанрам
+                </h5>
             </div>
             <div class="card-body">
                 <div class="list-group">
                     {% for genre in genres %}
-                    <a href="/books/?genre={{ genre.id }}" class="list-group-item list-group-item-action">
+                    <a href="/books/?genre={{ genre.id }}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
                         {{ genre.name }}
+                        <span class="badge bg-primary rounded-pill">{{ genre.book_set.count }}</span>
                     </a>
+                    {% empty %}
+                    <div class="list-group-item text-muted">
+                        <i class="bi bi-info-circle"></i> Жанры не найдены
+                    </div>
                     {% endfor %}
                 </div>
             </div>
         </div>
 
         <div class="card mt-4 shadow-sm">
-            <div class="card-body" style="background: linear-gradient(135deg, #EBF5FB, #D6EAF8);">
-                <h5 class="text-dark">📊 Статистика</h5>
-                <p class="mb-1 text-dark">Всего книг: {{ latest_books.count }}</p>
-                <p class="mb-1 text-dark">Жанров: {{ genres.count }}</p>
-                {% if user.is_authenticated %}
-                <p class="mb-0 text-dark">Ваш профиль: {{ user.username }}</p>
-                {% else %}
-                <p class="mb-0 text-dark"><a href="/login/" class="text-decoration-none">Войдите</a> для доступа к избранному</p>
-                {% endif %}
+            <div class="card-body gradient-classic">
+                <h5 class="text-dark">
+                    <i class="bi bi-graph-up"></i> 📊 Статистика
+                </h5>
+                <ul class="list-unstyled">
+                    <li class="mb-2">
+                        📚 <span class="text-dark">Всего книг:</span> 
+                        <strong>{{ total_books }}</strong>
+                    </li>
+                    <li class="mb-2">
+                        🏷️ <span class="text-dark">Жанров:</span> 
+                        <strong>{{ genres.count }}</strong>
+                    </li>
+                    {% if user.is_authenticated %}
+                    <li class="mb-0">
+                        👤 <span class="text-dark">Вы вошли как:</span> 
+                        <strong>{{ user.username }}</strong>
+                    </li>
+                    {% else %}
+                    <li class="mb-0">
+                        ℹ️ <span class="text-dark">
+                            <a href="{% url 'login' %}" class="text-decoration-none">Войдите</a> для доступа к избранному
+                        </span>
+                    </li>
+                    {% endif %}
+                </ul>
             </div>
         </div>
+
+        {% if user.is_authenticated and user_favorite_genres %}
+        <div class="card mt-4 shadow-sm border-primary">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">
+                    <i class="bi bi-star"></i> Ваши предпочтения
+                </h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted mb-2">
+                    <i class="bi bi-heart"></i> На основе ваших избранных книг:
+                </p>
+                <div class="mb-3">
+                    {% for genre in user_favorite_genres|slice:":6" %}
+                        <span class="badge 
+                            {% if genre.name == 'Классика' %}bg-success
+                            {% elif genre.name == 'Драма' %}bg-danger
+                            {% elif genre.name == 'Комедия' %}bg-warning text-dark
+                            {% elif genre.name == 'Сатира' %}bg-info
+                            {% elif genre.name == 'Фантастика' %}bg-primary
+                            {% elif genre.name == 'Роман' %}bg-secondary
+                            {% else %}bg-primary{% endif %} me-1 mb-1">
+                            {{ genre.name }}
+                        </span>
+                    {% endfor %}
+                </div>
+                <a href="{% url 'favorite_books' %}" class="btn btn-outline-primary btn-sm">
+                    <i class="bi bi-heart"></i> Мои избранные книги
+                </a>
+            </div>
+        </div>
+        {% endif %}
     </div>
 </div>
 {% endblock %}

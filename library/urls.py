@@ -12,4 +12,5 @@ urlpatterns = [
     path('logout/', views.logout_view, name='logout'),
     path('toggle_favorite/<int:book_id>/', views.toggle_favorite, name='toggle_favorite'),
     path('books/<int:pk>/read/', views.read_book, name='read_book'),
+     path('profile/edit/', views.edit_profile, name='edit_profile'),
 ]
