@@ -93,17 +93,6 @@
                             </div>
                             
                             <div class="mb-3">
-                                {{ profile_form.email.label_tag }}
-                                {{ profile_form.email }}
-                                <small class="text-muted">
-                                    Дополнительный email (необязательно)
-                                </small>
-                                {% if profile_form.email.errors %}
-                                    <div class="text-danger small">{{ profile_form.email.errors }}</div>
-                                {% endif %}
-                            </div>
-                            
-                            <div class="mb-3">
                                 <label for="id_phone_number" class="form-label">Номер телефона:</label>
                                 <input type="tel" 
                                        name="phone_number" 
