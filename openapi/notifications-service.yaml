@@ -110,6 +110,61 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
 
+  # 4. PATCH /notifications/{notificationId}/read - отметить как прочитанное
+    patch:
+      summary: Отметить уведомление как прочитанное
+      parameters:
+        - name: notificationId
+          in: path
+          required: true
+          description: ID уведомления
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Уведомление отмечено как прочитанное
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Notification'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  # 5. DELETE /notifications/{notificationId} - удалить уведомление
+    delete:
+      summary: Удалить уведомление
+      parameters:
+        - name: notificationId
+          in: path
+          required: true
+          description: ID уведомления для удаления
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Уведомление удалено
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  # 6. POST /notifications/read-all - отметить все как прочитанные
+  /notifications/read-all:
+    post:
+      summary: Отметить все уведомления как прочитанные
+      responses:
+        '200':
+          description: Все уведомления отмечены как прочитанные
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Все уведомления отмечены как прочитанные"
+                  updated_count:
+                    type: integer
+                    example: 12
+
 components:
   schemas:
     Notification:
