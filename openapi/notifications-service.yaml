@@ -165,6 +165,32 @@ paths:
                     type: integer
                     example: 12
 
+  # 7. GET /notifications/statistics - статистика уведомлений
+  /notifications/statistics:
+    get:
+      summary: Получить статистику уведомлений
+      description: Статистика по отправленным уведомлениям за период
+      parameters:
+        - name: from_date
+          in: query
+          description: Начало периода (YYYY-MM-DD)
+          schema:
+            type: string
+            format: date
+        - name: to_date
+          in: query
+          description: Конец периода (YYYY-MM-DD)
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: Статистика уведомлений
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotificationStatistics'
+
 components:
   schemas:
     Notification:
@@ -295,6 +321,82 @@ components:
         - type
         - title
         - message
+
+    NotificationStatistics:
+      type: object
+      description: Статистика по уведомлениям
+      properties:
+        period:
+          type: object
+          properties:
+            from:
+              type: string
+              format: date
+              example: "2024-03-01"
+            to:
+              type: string
+              format: date
+              example: "2024-03-31"
+        total_sent:
+          type: integer
+          example: 1250
+        by_type:
+          type: object
+          properties:
+            due_date:
+              type: integer
+              example: 450
+            new_book:
+              type: integer
+              example: 300
+            event:
+              type: integer
+              example: 200
+            fine:
+              type: integer
+              example: 150
+            system:
+              type: integer
+              example: 150
+        by_channel:
+          type: object
+          properties:
+            email:
+              type: integer
+              example: 500
+            push:
+              type: integer
+              example: 400
+            sms:
+              type: integer
+              example: 50
+            in_app:
+              type: integer
+              example: 300
+        read_rate:
+          type: number
+          format: float
+          description: Процент прочитанных
+          example: 78.5
+        average_response_time:
+          type: string
+          description: Среднее время до прочтения
+          example: "2.5 hours"
+        by_priority:
+          type: object
+          properties:
+            urgent:
+              type: integer
+              example: 50
+            high:
+              type: integer
+              example: 200
+            medium:
+              type: integer
+              example: 700
+            low:
+              type: integer
+              example: 300
 
   responses:
     BadRequest:
