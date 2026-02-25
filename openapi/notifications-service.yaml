@@ -65,6 +65,51 @@ paths:
                     items:
                       $ref: '#/components/schemas/Notification'
 
+  # 2. POST /notifications - отправить уведомление
+    post:
+      summary: Отправить уведомление
+      description: Создаёт новое уведомление для пользователя
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NotificationCreate'
+      responses:
+        '201':
+          description: Уведомление отправлено
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Notification'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/UserNotFound'
+
+  # 3. GET /notifications/{notificationId} - получить конкретное уведомление
+  /notifications/{notificationId}:
+    get:
+      summary: Получить уведомление по ID
+      parameters:
+        - name: notificationId
+          in: path
+          required: true
+          description: ID уведомления
+          schema:
+            type: integer
+            minimum: 1
+            example: 123
+      responses:
+        '200':
+          description: Уведомление найдено
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Notification'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
 components:
   schemas:
     Notification:
@@ -221,20 +266,6 @@ components:
               code:
                 type: integer
                 example: 400
-
-    Unauthorized:
-      description: Не авторизован
-      content:
-        application/json:
-          schema:
-            type: object
-            properties:
-              error:
-                type: string
-                example: "Требуется авторизация"
-              code:
-                type: integer
-                example: 401
 
     NotFound:
       description: Ресурс не найден
