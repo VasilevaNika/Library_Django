@@ -1,11 +1,290 @@
 openapi: 3.0.0
 info:
-  title: Тестовый API
-  version: 1.0.0
+  title: Микросервис рекомендаций библиотеки
+  description: |
+    API для получения рекомендаций книг и управления персональными настройками.
+  version: 3.0.0
+
+servers:
+  - url: http://localhost:8001
+    description: Локальный сервер микросервиса рекомендаций
+
 paths:
-  /test:
+  # 1. GET - популярные книги
+  /recommendations/popular:
     get:
-      summary: Тестовый эндпоинт
+      summary: Популярные книги
+      description: Возвращает список самых популярных книг
+      parameters:
+        - name: limit
+          in: query
+          required: false
+          description: Количество книг
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+            default: 10
       responses:
         '200':
-          description: Успешно
+          description: Список популярных книг
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/BookRecommendation'
+
+  # 2. GET - новинки
+  /recommendations/new:
+    get:
+      summary: Новинки
+      description: Недавно добавленные книги
+      parameters:
+        - name: limit
+          in: query
+          required: false
+          description: Количество книг
+          schema:
+            type: integer
+            default: 10
+      responses:
+        '200':
+          description: Список новинок
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/BookRecommendation'
+
+  # 3. GET - популярные книги по жанру
+  /recommendations/genre/{genreId}:
+    get:
+      summary: Популярное в жанре
+      description: Самые популярные книги в указанном жанре (по рейтингу)
+      parameters:
+        - name: genreId
+          in: path
+          required: true
+          description: ID жанра
+          schema:
+            type: integer
+            example: 2
+        - name: limit
+          in: query
+          required: false
+          description: Количество книг
+          schema:
+            type: integer
+            default: 10
+        - name: min_rating
+          in: query
+          required: false
+          description: Минимальный рейтинг
+          schema:
+            type: number
+            minimum: 0
+            maximum: 5
+            default: 4
+            example: 4.5
+      responses:
+        '200':
+          description: Топ книг жанра
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/BookRecommendation'
+        '404':
+          $ref: '#/components/responses/GenreNotFound'
+
+  # 4. GET - популярные книги автора
+  /recommendations/author/{authorId}:
+    get:
+      summary: Популярное у автора
+      description: Самые популярные книги указанного автора (по рейтингу)
+      parameters:
+        - name: authorId
+          in: path
+          required: true
+          description: ID автора
+          schema:
+            type: integer
+            example: 42
+        - name: limit
+          in: query
+          required: false
+          description: Количество книг
+          schema:
+            type: integer
+            default: 5
+      responses:
+        '200':
+          description: Топ книг автора
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/BookRecommendation'
+        '404':
+          $ref: '#/components/responses/AuthorNotFound'
+
+  # 5. GET - похожие книги
+  /recommendations/similar/{bookId}:
+    get:
+      summary: Похожие книги
+      description: Книги, похожие на указанную
+      parameters:
+        - name: bookId
+          in: path
+          required: true
+          description: ID книги
+          schema:
+            type: integer
+            example: 15
+        - name: limit
+          in: query
+          required: false
+          description: Количество книг
+          schema:
+            type: integer
+            default: 5
+      responses:
+        '200':
+          description: Похожие книги
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/BookRecommendation'
+        '404':
+          $ref: '#/components/responses/BookNotFound'
+
+  # 6. GET - случайная книга
+  /recommendations/random:
+    get:
+      summary: Случайная книга
+      description: Одна случайная книга
+      parameters:
+        - name: genre_id
+          in: query
+          required: false
+          description: Ограничить жанром
+          schema:
+            type: integer
+            example: 3
+      responses:
+        '200':
+          description: Случайная книга
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BookRecommendation'
+
+components:
+  schemas:
+    BookRecommendation:
+      type: object
+      description: Базовая информация о книге
+      properties:
+        id:
+          type: integer
+          description: ID книги
+          example: 15
+        title:
+          type: string
+          description: Название
+          example: "Мастер и Маргарита"
+        author:
+          type: string
+          description: Автор
+          example: "Михаил Булгаков"
+        author_id:
+          type: integer
+          description: ID автора
+          example: 42
+        genre_id:
+          type: integer
+          description: ID жанра
+          example: 1
+        genre_name:
+          type: string
+          description: Название жанра
+          example: "Классика"
+        year:
+          type: integer
+          description: Год издания
+          example: 1967
+        cover:
+          type: string
+          description: Ссылка на обложку
+          example: "/covers/15.jpg"
+        rating:
+          type: number
+          format: float
+          description: Средний рейтинг
+          example: 4.8
+        rating_count:
+          type: integer
+          description: Количество оценок
+          example: 1250
+      required:
+        - id
+        - title
+        - author
+
+  responses:
+    BadRequest:
+      description: Неверный запрос
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: "Неверные данные в запросе"
+    UserNotFound:
+      description: Пользователь не найден
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: "Пользователь с указанным ID не существует"
+    GenreNotFound:
+      description: Жанр не найден
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: "Жанр с указанным ID не существует"
+    AuthorNotFound:
+      description: Автор не найден
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: "Автор с указанным ID не найден"
+    BookNotFound:
+      description: Книга не найдена
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: "Книга с указанным ID не существует"
