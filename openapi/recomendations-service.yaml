@@ -1,1 +1,11 @@
-бла бла бла
+openapi: 3.0.0
+info:
+  title: Тестовый API
+  version: 1.0.0
+paths:
+  /test:
+    get:
+      summary: Тестовый эндпоинт
+      responses:
+        '200':
+          description: Успешно
