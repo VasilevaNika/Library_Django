@@ -64,6 +64,8 @@ paths:
                     type: array
                     items:
                       $ref: '#/components/schemas/Notification'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
 
   # 2. POST /notifications - отправить уведомление
     post:
@@ -109,6 +111,8 @@ paths:
                 $ref: '#/components/schemas/Notification'
         '404':
           $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
 
   # 4. PATCH /notifications/{notificationId}/read - отметить как прочитанное
     patch:
@@ -423,6 +427,20 @@ components:
               code:
                 type: integer
                 example: 400
+
+    Unauthorized:
+      description: Не авторизован
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: "Требуется авторизация"
+              code:
+                type: integer
+                example: 401
 
     NotFound:
       description: Ресурс не найден
