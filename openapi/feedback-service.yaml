@@ -1,0 +1,467 @@
+openapi: 3.0.0
+info:
+  title: API для отзывов на книги
+  description: Сервис рейтингов и отзывов
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:8000
+    description: Локальный сервер
+
+paths:
+  # Существующие эндпоинты
+  /books/{bookId}/reviews:
+    post:
+      summary: Создать отзыв
+      description: Добавляет новый отзыв на книгу
+      parameters:
+        - name: bookId
+          in: path
+          required: true
+          schema:
+            type: integer
+            example: 67890
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - user_id
+                - rating
+                - text
+              properties:
+                user_id:
+                  type: integer
+                  example: 12345
+                rating:
+                  type: integer
+                  minimum: 1
+                  maximum: 5
+                  example: 5
+                title:
+                  type: string
+                  example: "Шедевр на все времена"
+                text:
+                  type: string
+                  example: "Эта книга изменила моё представление о литературе..."
+                anonymous:
+                  type: boolean
+                  default: false
+      responses:
+        '201':
+          description: Отзыв создан
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  review_id:
+                    type: integer
+                    example: 555
+                  status:
+                    type: string
+                    example: pending_moderation
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
+    get:
+      summary: Отзывы на книгу
+      description: Возвращает список отзывов для указанной книги
+      parameters:
+        - name: bookId
+          in: path
+          required: true
+          schema:
+            type: integer
+            example: 67890
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+            minimum: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 10
+            maximum: 50
+        - name: sort
+          in: query
+          schema:
+            type: string
+            enum: [newest, oldest, highest_rating, lowest_rating, most_helpful]
+            default: newest
+        - name: rating
+          in: query
+          description: Фильтр по оценке
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 5
+      responses:
+        '200':
+          description: Список отзывов
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  book_id:
+                    type: integer
+                    example: 67890
+                  total_reviews:
+                    type: integer
+                    example: 42
+                  average_rating:
+                    type: number
+                    format: float
+                    example: 4.5
+                  rating_distribution:
+                    type: object
+                    properties:
+                      '1':
+                        type: integer
+                        example: 2
+                      '2':
+                        type: integer
+                        example: 3
+                      '3':
+                        type: integer
+                        example: 8
+                      '4':
+                        type: integer
+                        example: 12
+                      '5':
+                        type: integer
+                        example: 17
+                  reviews:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Review'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+
+    delete:
+      summary: Удалить отзыв
+      description: Удаляет отзыв (только автор или модератор)
+      parameters:
+        - name: reviewId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Отзыв удален
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  # 2. Отметить отзыв как полезный
+  /reviews/{reviewId}/helpful:
+    post:
+      summary: Отметить отзыв как полезный
+      description: Добавляет голос пользователя за полезность отзыва
+      parameters:
+        - name: reviewId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - user_id
+              properties:
+                user_id:
+                  type: integer
+                  example: 12345
+      responses:
+        '200':
+          description: Голос учтен
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  helpful_votes:
+                    type: integer
+                    example: 16
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
+    delete:
+      summary: Убрать отметку полезности
+      description: Удаляет голос пользователя за полезность отзыва
+      parameters:
+        - name: reviewId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: user_id
+          in: query
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Голос удален
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  helpful_votes:
+                    type: integer
+                    example: 15
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  # 3. Ответить на отзыв
+  /reviews/{reviewId}/responses:
+    post:
+      summary: Ответить на отзыв
+      description: Добавляет ответ от автора книги или модератора
+      parameters:
+        - name: reviewId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - user_id
+                - text
+              properties:
+                user_id:
+                  type: integer
+                  example: 67890
+                text:
+                  type: string
+                  example: "Спасибо за отзыв! Рады, что книга вам понравилась."
+      responses:
+        '201':
+          description: Ответ добавлен
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response_id:
+                    type: integer
+                    example: 999
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  # 5. Статистика по книге
+  /books/{bookId}/rating/stats:
+    get:
+      summary: Статистика рейтинга книги
+      description: Детальная статистика по оценкам книги
+      parameters:
+        - name: bookId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Статистика рейтинга
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  book_id:
+                    type: integer
+                  total_reviews:
+                    type: integer
+                  average_rating:
+                    type: number
+                  monthly_stats:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        month:
+                          type: string
+                          example: "2024-01"
+                        reviews_count:
+                          type: integer
+                        average_rating:
+                          type: number
+                  rating_trend:
+                    type: string
+                    enum: [rising, falling, stable]
+
+  # 8. Жалобы на отзывы
+  /reviews/{reviewId}/reports:
+    post:
+      summary: Пожаловаться на отзыв
+      description: Отправить жалобу на некорректный отзыв
+      parameters:
+        - name: reviewId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - user_id
+                - reason
+              properties:
+                user_id:
+                  type: integer
+                reason:
+                  type: string
+                  enum: [spam, offensive, irrelevant, other]
+                comment:
+                  type: string
+      responses:
+        '201':
+          description: Жалоба отправлена
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+components:
+  schemas:
+    Review:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 555
+        user_id:
+          type: integer
+          example: 12345
+        user_name:
+          type: string
+          example: "Иван Петров"
+        rating:
+          type: integer
+          example: 5
+        title:
+          type: string
+          example: "Шедевр на все времена"
+        text:
+          type: string
+          example: "Эта книга изменила моё представление о литературе..."
+        helpful_votes:
+          type: integer
+          example: 15
+        status:
+          type: string
+          enum: [pending, approved, rejected]
+          default: pending
+        anonymous:
+          type: boolean
+          default: false
+        created_at:
+          type: string
+          format: date-time
+          example: "2024-01-15T10:30:00Z"
+        updated_at:
+          type: string
+          format: date-time
+        responses_count:
+          type: integer
+          example: 2
+
+  responses:
+    BadRequest:
+      description: Неверный запрос
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: "Некорректные данные"
+              message:
+                type: string
+                example: "Поле rating должно быть от 1 до 5"
+    
+    Unauthorized:
+      description: Требуется авторизация
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: "Не авторизован"
+              message:
+                type: string
+                example: "Требуется токен авторизации"
+    
+    Forbidden:
+      description: Доступ запрещен
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: "Доступ запрещен"
+              message:
+                type: string
+                example: "Недостаточно прав для выполнения операции"
+    
+    NotFound:
+      description: Ресурс не найден
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: "Не найдено"
+              message:
+                type: string
+                example: "Отзыв с указанным ID не найден"
+    
+    Conflict:
+      description: Конфликт данных
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: "Конфликт"
+              message:
+                type: string
+                example: "Пользователь уже оставил отзыв на эту книгу"

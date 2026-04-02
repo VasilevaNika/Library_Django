@@ -1,0 +1,3 @@
+fastapi
+uvicorn
+httpx          # для HTTP-запросов к другим сервисам
