@@ -101,3 +101,5 @@ class QuoteResponse(BaseModel):
     quote: str
     author: str
     title: str
+
+

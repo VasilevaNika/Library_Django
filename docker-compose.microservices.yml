@@ -1,0 +1,105 @@
+# Три микросервиса, ОДНА PostgreSQL и одна БД `library` (каталог, отзывы, уведомления).
+# Порядок миграций: recommendations → reviews → notifications (через depends_on).
+#
+# Запуск из каталога Library_Django:
+#   docker compose -f docker-compose.microservices.yml up --build
+#
+# Порты: 8001 recommendations, 8002 reviews, 8003 notifications, 5434 — Postgres.
+# После смены с одной/двух БД на общую: docker compose down -v
+
+services:
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: library
+      POSTGRES_PASSWORD: library
+      POSTGRES_DB: library
+    ports:
+      - "5434:5432"
+    volumes:
+      - pg_shared:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U library -d library"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - backend
+
+  recommendations-service:
+    build:
+      context: ./recomendations-service
+      network: host
+    command: >
+      sh -c "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
+    ports:
+      - "8001:8000"
+    volumes:
+      - ./recomendations-service:/app
+    environment:
+      DB_HOST: postgres
+      DB_USER: library
+      DB_PASSWORD: library
+      DB_NAME: library
+      DB_PORT: "5432"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - backend
+
+  reviews-service:
+    build:
+      context: ./reviews-services
+      network: host
+    command: >
+      sh -c "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
+    ports:
+      - "8002:8000"
+    volumes:
+      - ./reviews-services:/app
+    environment:
+      DB_HOST: postgres
+      DB_USER: library
+      DB_PASSWORD: library
+      DB_NAME: library
+      DB_PORT: "5432"
+      NOTIFICATIONS_SERVICE_URL: http://notifications-service:8000
+    depends_on:
+      postgres:
+        condition: service_healthy
+      recommendations-service:
+        condition: service_started
+    networks:
+      - backend
+
+  notifications-service:
+    build:
+      context: ./notifications-service
+      network: host
+    command: >
+      sh -c "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
+    ports:
+      - "8003:8000"
+    volumes:
+      - ./notifications-service:/app
+    environment:
+      DB_HOST: postgres
+      DB_USER: library
+      DB_PASSWORD: library
+      DB_NAME: library
+      DB_PORT: "5432"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      reviews-service:
+        condition: service_started
+    networks:
+      - backend
+
+networks:
+  backend:
+    driver: bridge
+
+volumes:
+  pg_shared:

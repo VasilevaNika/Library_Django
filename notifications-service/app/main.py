@@ -27,6 +27,8 @@ app = FastAPI(
 
 logger = logging.getLogger("notifications-service")
 
+logging.basicConfig(level=logging.INFO)
+
 
 def log_notification_created(
     *,

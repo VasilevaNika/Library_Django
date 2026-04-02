@@ -19,8 +19,8 @@ def _clean_env(name: str, default: str = "") -> str:
 DB_USER = _clean_env("DB_USER")
 DB_PASSWORD = _clean_env("DB_PASSWORD")
 DB_NAME = _clean_env("DB_NAME")
-DB_HOST = "localhost"  # так как БД в контейнере на том же хосте
-DB_PORT = "5432"
+DB_HOST = _clean_env("DB_HOST", "localhost")
+DB_PORT = _clean_env("DB_PORT", "5432")
 
 DATABASE_URL = URL.create(
     "postgresql+psycopg2",

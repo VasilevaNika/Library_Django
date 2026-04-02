@@ -20,17 +20,19 @@ def _clean_env(name: str, default: str = "") -> str:
     return value.replace("\ufeff", "").replace("\xa0", "").strip()
 
 from app.database import Base
-from app.models import Review
+from app.models import Book, LibraryUser, ReadingListEntry, Review  # noqa: F401
 
 config = context.config
 
-# Build database URL from environment
+# Build database URL from environment (общая БД с recommendations; отдельная таблица версий Alembic)
+_db_host = _clean_env("DB_HOST", "localhost")
+_db_port = int(_clean_env("DB_PORT", "5432"))
 DATABASE_URL = URL.create(
     "postgresql+psycopg2",
     username=_clean_env("DB_USER"),
     password=_clean_env("DB_PASSWORD"),
-    host="localhost",
-    port=5432,
+    host=_db_host,
+    port=_db_port,
     database=_clean_env("DB_NAME"),
     query={"application_name": "reviews_microservice_alembic"},
 )
@@ -52,6 +54,7 @@ def run_migrations_offline():
         target_metadata=target_metadata,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
+        version_table="alembic_version_reviews",
     )
     with context.begin_transaction():
         context.run_migrations()
@@ -65,7 +68,9 @@ def run_migrations_online():
     )
     with connectable.connect() as connection:
         context.configure(
-            connection=connection, target_metadata=target_metadata
+            connection=connection,
+            target_metadata=target_metadata,
+            version_table="alembic_version_reviews",
         )
         with context.begin_transaction():
             context.run_migrations()

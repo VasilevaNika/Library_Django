@@ -11,6 +11,7 @@ class NotificationType(str, Enum):
     EVENT = "event"
     FINE = "fine"
     SYSTEM = "system"
+    REVIEW = "review"
 
 
 class NotificationPriority(str, Enum):
