@@ -1,0 +1,471 @@
+openapi: 3.0.0
+info:
+  title: API уведомлений онлайн-библиотеки
+  description: |
+    API для управления уведомлениями читателей онлайн-библиотеки.
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:8000
+    description: Локальный сервер для разработки
+
+paths:
+  # 1. GET /notifications - получить все уведомления пользователя
+  /notifications:
+    get:
+      summary: Получить уведомления
+      description: Возвращает список уведомлений для текущего пользователя
+      parameters:
+        - name: status
+          in: query
+          description: Фильтр по статусу прочтения
+          schema:
+            type: string
+            enum: [all, unread, read]
+            default: all
+        - name: type
+          in: query
+          description: Фильтр по типу уведомления
+          schema:
+            type: string
+            enum: [due_date, new_book, event, fine, system]
+        - name: limit
+          in: query
+          description: Количество уведомлений на странице
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - name: offset
+          in: query
+          description: Смещение для пагинации
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+      responses:
+        '200':
+          description: Список уведомлений
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total:
+                    type: integer
+                    description: Общее количество уведомлений
+                    example: 45
+                  unread_count:
+                    type: integer
+                    description: Количество непрочитанных
+                    example: 3
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Notification'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  # 2. POST /notifications - отправить уведомление
+    post:
+      summary: Отправить уведомление
+      description: Создаёт новое уведомление для пользователя
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NotificationCreate'
+      responses:
+        '201':
+          description: Уведомление отправлено
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Notification'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/UserNotFound'
+
+  # 3. GET /notifications/{notificationId} - получить конкретное уведомление
+  /notifications/{notificationId}:
+    get:
+      summary: Получить уведомление по ID
+      parameters:
+        - name: notificationId
+          in: path
+          required: true
+          description: ID уведомления
+          schema:
+            type: integer
+            minimum: 1
+            example: 123
+      responses:
+        '200':
+          description: Уведомление найдено
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Notification'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  # 4. PATCH /notifications/{notificationId}/read - отметить как прочитанное
+    patch:
+      summary: Отметить уведомление как прочитанное
+      parameters:
+        - name: notificationId
+          in: path
+          required: true
+          description: ID уведомления
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Уведомление отмечено как прочитанное
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Notification'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  # 5. DELETE /notifications/{notificationId} - удалить уведомление
+    delete:
+      summary: Удалить уведомление
+      parameters:
+        - name: notificationId
+          in: path
+          required: true
+          description: ID уведомления для удаления
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Уведомление удалено
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  # 6. POST /notifications/read-all - отметить все как прочитанные
+  /notifications/read-all:
+    post:
+      summary: Отметить все уведомления как прочитанные
+      responses:
+        '200':
+          description: Все уведомления отмечены как прочитанные
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Все уведомления отмечены как прочитанные"
+                  updated_count:
+                    type: integer
+                    example: 12
+
+  # 7. GET /notifications/statistics - статистика уведомлений
+  /notifications/statistics:
+    get:
+      summary: Получить статистику уведомлений
+      description: Статистика по отправленным уведомлениям за период
+      parameters:
+        - name: from_date
+          in: query
+          description: Начало периода (YYYY-MM-DD)
+          schema:
+            type: string
+            format: date
+        - name: to_date
+          in: query
+          description: Конец периода (YYYY-MM-DD)
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: Статистика уведомлений
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotificationStatistics'
+
+components:
+  schemas:
+    Notification:
+      type: object
+      description: Полная модель уведомления
+      properties:
+        id:
+          type: integer
+          description: Уникальный идентификатор уведомления
+          example: 12345
+        user_id:
+          type: integer
+          description: ID получателя
+          example: 789
+        type:
+          type: string
+          enum: [due_date, new_book, event, fine, system]
+          description: Тип уведомления
+          example: "due_date"
+        title:
+          type: string
+          description: Заголовок уведомления
+          example: "Верните книгу"
+        message:
+          type: string
+          description: Текст уведомления
+          example: "Книгу 'Война и мир' необходимо вернуть до 25.03.2024"
+        created_at:
+          type: string
+          format: date-time
+          description: Дата и время создания
+          example: "2024-03-20T10:30:00Z"
+        read_at:
+          type: string
+          format: date-time
+          nullable: true
+          description: Дата прочтения (null если не прочитано)
+          example: null
+        priority:
+          type: string
+          enum: [low, medium, high, urgent]
+          description: Приоритет уведомления
+          default: medium
+        channel:
+          type: string
+          enum: [email, push, sms, in_app]
+          description: Канал доставки
+          example: "email"
+        related_data:
+          type: object
+          description: Дополнительные данные (ID книги, события и т.д.)
+          properties:
+            book_id:
+              type: integer
+              example: 42
+            book_title:
+              type: string
+              example: "Война и мир"
+            event_id:
+              type: integer
+              example: 15
+            event_name:
+              type: string
+              example: "Лекция о Толстом"
+            fine_amount:
+              type: number
+              example: 100.50
+            due_date:
+              type: string
+              format: date
+              example: "2024-03-25"
+      required:
+        - id
+        - user_id
+        - type
+        - title
+        - message
+        - created_at
+        - channel
+
+    NotificationCreate:
+      type: object
+      description: Данные для создания уведомления
+      properties:
+        user_id:
+          type: integer
+          description: ID получателя
+          example: 789
+        type:
+          type: string
+          enum: [due_date, new_book, event, fine, system]
+          example: "new_book"
+        title:
+          type: string
+          maxLength: 200
+          example: "Новое поступление"
+        message:
+          type: string
+          maxLength: 1000
+          example: "В библиотеку поступила книга 'Мастер и Маргарита'"
+        priority:
+          type: string
+          enum: [low, medium, high, urgent]
+          default: medium
+        channel:
+          type: string
+          enum: [email, push, sms, in_app]
+          default: in_app
+          description: Канал доставки
+        related_data:
+          type: object
+          properties:
+            book_id:
+              type: integer
+            book_title:
+              type: string
+            event_id:
+              type: integer
+            event_name:
+              type: string
+            fine_amount:
+              type: number
+            due_date:
+              type: string
+              format: date
+      required:
+        - user_id
+        - type
+        - title
+        - message
+
+    NotificationStatistics:
+      type: object
+      description: Статистика по уведомлениям
+      properties:
+        period:
+          type: object
+          properties:
+            from:
+              type: string
+              format: date
+              example: "2024-03-01"
+            to:
+              type: string
+              format: date
+              example: "2024-03-31"
+        total_sent:
+          type: integer
+          example: 1250
+        by_type:
+          type: object
+          properties:
+            due_date:
+              type: integer
+              example: 450
+            new_book:
+              type: integer
+              example: 300
+            event:
+              type: integer
+              example: 200
+            fine:
+              type: integer
+              example: 150
+            system:
+              type: integer
+              example: 150
+        by_channel:
+          type: object
+          properties:
+            email:
+              type: integer
+              example: 500
+            push:
+              type: integer
+              example: 400
+            sms:
+              type: integer
+              example: 50
+            in_app:
+              type: integer
+              example: 300
+        read_rate:
+          type: number
+          format: float
+          description: Процент прочитанных
+          example: 78.5
+        average_response_time:
+          type: string
+          description: Среднее время до прочтения
+          example: "2.5 hours"
+        by_priority:
+          type: object
+          properties:
+            urgent:
+              type: integer
+              example: 50
+            high:
+              type: integer
+              example: 200
+            medium:
+              type: integer
+              example: 700
+            low:
+              type: integer
+              example: 300
+
+  responses:
+    BadRequest:
+      description: Неверный запрос
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: "Ошибка валидации данных"
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    field:
+                      type: string
+                      example: "user_id"
+                    message:
+                      type: string
+                      example: "Обязательное поле"
+              code:
+                type: integer
+                example: 400
+
+    Unauthorized:
+      description: Не авторизован
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: "Требуется авторизация"
+              code:
+                type: integer
+                example: 401
+
+    NotFound:
+      description: Ресурс не найден
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: "Уведомление не найдено"
+              code:
+                type: integer
+                example: 404
+
+    UserNotFound:
+      description: Пользователь не найден
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: "Пользователь с указанным ID не существует"
+              code:
+                type: integer
+                example: 404
