@@ -10,10 +10,28 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.2/ref/settings/
 """
 
+import os
 from pathlib import Path
+from urllib.parse import unquote, urlparse
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+
+def _postgres_from_url(url: str) -> dict:
+    """Парсинг postgresql://... для главной общей БД (тот же DSN, что можно передать в Docker)."""
+    u = urlparse(url)
+    if u.scheme not in ("postgres", "postgresql"):
+        raise ValueError("DATABASE_URL должен начинаться с postgresql://")
+    name = (u.path or "").lstrip("/").split("/")[0] or "library"
+    return {
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": name,
+        "USER": unquote(u.username) if u.username else "",
+        "PASSWORD": unquote(u.password) if u.password else "",
+        "HOST": u.hostname or "localhost",
+        "PORT": str(u.port or 5432),
+    }
 
 
 # Quick-start development settings - unsuitable for production
@@ -25,7 +43,11 @@ SECRET_KEY = 'django-insecure-2k#)v%wdsu6_1h37pvb$66z0+bho96^_j5gj$9pbn1==q8ef+6
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    h.strip()
+    for h in os.environ.get("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
+    if h.strip()
+]
 
 
 # Application definition
@@ -37,7 +59,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'library',
+    'library.apps.LibraryConfig',
 ]
 
 MIDDLEWARE = [
@@ -74,12 +96,29 @@ WSGI_APPLICATION = 'online_library.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+# Главная общая БД — PostgreSQL (миграции Django + те же учётные данные, что у микросервисов).
+# Приоритет: DATABASE_URL / MAIN_DATABASE_URL → DB_* + DJANGO_USE_POSTGRES/DB_HOST → SQLite (только локально без общего стека).
+_db_url = os.environ.get("DATABASE_URL") or os.environ.get("MAIN_DATABASE_URL")
+if _db_url:
+    DATABASES = {"default": _postgres_from_url(_db_url)}
+elif os.environ.get("DJANGO_USE_POSTGRES") == "1" or os.environ.get("DB_HOST"):
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.postgresql",
+            "NAME": os.environ.get("DB_NAME", "library"),
+            "USER": os.environ.get("DB_USER", "library"),
+            "PASSWORD": os.environ.get("DB_PASSWORD", "library"),
+            "HOST": os.environ.get("DB_HOST", "localhost"),
+            "PORT": os.environ.get("DB_PORT", "5432"),
+        }
     }
-}
+else:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": BASE_DIR / "db.sqlite3",
+        }
+    }
 
 
 # Password validation
@@ -125,6 +164,19 @@ STATIC_URL = '/static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-import os
-MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+MEDIA_URL = "/media/"
+MEDIA_ROOT = os.path.join(BASE_DIR, "media")
+
+# Базовый URL микросервиса рекомендаций (главная: /recommendations/new). В Docker: http://recommendations-service:8000
+RECOMMENDATIONS_SERVICE_URL = os.environ.get(
+    "RECOMMENDATIONS_SERVICE_URL",
+    "http://127.0.0.1:8001",
+)
+REVIEWS_SERVICE_URL = os.environ.get(
+    "REVIEWS_SERVICE_URL",
+    "http://127.0.0.1:8002",
+)
+NOTIFICATIONS_SERVICE_URL = os.environ.get(
+    "NOTIFICATIONS_SERVICE_URL",
+    "http://127.0.0.1:8003",
+)

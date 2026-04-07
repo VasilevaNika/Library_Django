@@ -1,18 +1,31 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.http import require_POST
 from django.db.models import Q
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth import login, logout
 from django.contrib import messages
 from .models import Book, Author, Genre, Favorite, Profile
-from .forms import ProfileUpdateForm, UserUpdateForm
-from django.conf import settings
+from .forms import BookReviewForm, ProfileUpdateForm, UserUpdateForm
+from .microservices_reviews_notifications import (
+    build_review_saved_notification_message,
+    create_review_saved_notification_via_service,
+    create_review_via_service,
+    format_service_error,
+)
+from .recommendations_client import fetch_new_books_from_recommendations_service
 
 def home(request):
     genres = Genre.objects.all()
-    latest_books = Book.objects.order_by('-id')[:6]
     total_books = Book.objects.count()
-    last_three_books = Book.objects.order_by('-id')[:3]
+
+    api_new = fetch_new_books_from_recommendations_service(limit=6)
+    if api_new:
+        latest_books = api_new
+        last_three_books = api_new[:3]
+    else:
+        latest_books = list(Book.objects.order_by("-id")[:6])
+        last_three_books = list(Book.objects.order_by("-id")[:3])
     
     recommended_books = None
     user_favorite_genres = []
@@ -79,11 +92,65 @@ def book_detail(request, pk):
     is_favorite = False
     if request.user.is_authenticated:
         is_favorite = Favorite.objects.filter(user=request.user, book=book).exists()
-    
-    return render(request, 'library/book_detail.html', {
-        'book': book,
-        'is_favorite': is_favorite
-    })
+
+    review_form = BookReviewForm() if request.user.is_authenticated else None
+
+    return render(
+        request,
+        "library/book_detail.html",
+        {
+            "book": book,
+            "is_favorite": is_favorite,
+            "review_form": review_form,
+        },
+    )
+
+
+@login_required
+@require_POST
+def submit_book_review(request, pk):
+    book = get_object_or_404(Book, pk=pk)
+    form = BookReviewForm(request.POST)
+    if not form.is_valid():
+        for errs in form.errors.values():
+            for e in errs:
+                messages.error(request, e)
+        return redirect("book_detail", pk=pk)
+
+    cd = form.cleaned_data
+    code, body = create_review_via_service(
+        user_id=request.user.id,
+        book_id=book.id,
+        title=cd["title"],
+        content=cd.get("content") or "",
+        is_published=bool(cd.get("is_published")),
+    )
+    if code != 201:
+        messages.error(
+            request,
+            format_service_error(body) if body else "Не удалось создать отзыв (сервис отзывов).",
+        )
+        return redirect("book_detail", pk=pk)
+
+    n_code, n_body = create_review_saved_notification_via_service(
+        user_id=request.user.id,
+        book_id=book.id,
+        book_title=book.title,
+        review_title=cd["title"],
+    )
+    fallback_text = build_review_saved_notification_message(book.title, cd["title"])
+    if n_code == 201 and isinstance(n_body, dict):
+        messages.success(
+            request,
+            n_body.get("message") or fallback_text,
+        )
+    else:
+        messages.warning(
+            request,
+            "Отзыв создан, но микросервис уведомлений недоступен или вернул ошибку: "
+            + (format_service_error(n_body) if n_body else "нет ответа"),
+        )
+    return redirect("book_detail", pk=pk)
 
 def read_book(request, pk):
     book = get_object_or_404(Book, pk=pk)

@@ -1,11 +1,15 @@
-# Три микросервиса, ОДНА PostgreSQL и одна БД `library` (каталог, отзывы, уведомления).
-# Порядок миграций: recommendations → reviews → notifications (через depends_on).
+# Одна главная БД PostgreSQL `library` — сначала миграции монолита Django, затем Alembic у микросервисов.
+# Порядок: postgres → monolith (healthy) → recommendations → reviews → notifications.
 #
 # Запуск из каталога Library_Django:
 #   docker compose -f docker-compose.microservices.yml up --build
 #
-# Порты: 8001 recommendations, 8002 reviews, 8003 notifications, 5434 — Postgres.
+# Порты: 8000 монолит Django, 8001 recommendations, 8002 reviews, 8003 notifications, 5434 — Postgres.
 # После смены с одной/двух БД на общую: docker compose down -v
+
+# Одна строка подключения для монолита и всех микросервисов (та же БД `library`).
+x-database-environment: &database-environment
+  DATABASE_URL: postgresql://library:library@postgres:5432/library
 
 services:
   postgres:
@@ -26,6 +30,44 @@ services:
     networks:
       - backend
 
+  # Монолит Django — владелец схемы ORM (auth, library_*). Та же БД, что у FastAPI (DB_* ниже).
+  # После изменений каталога: exec monolith python manage.py sync_microservice_mirror [--prune убирает сиды Alembic]
+  monolith:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      # Как у микросервисов: при проблемах DNS внутри build (pip → PyPI) использует резолвер хоста.
+      network: host
+    command: >
+      sh -c "python manage.py migrate --noinput && python manage.py runserver 0.0.0.0:8000"
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+    environment:
+      <<: *database-environment
+      DJANGO_ALLOWED_HOSTS: localhost,127.0.0.1,monolith
+      RECOMMENDATIONS_SERVICE_URL: http://recommendations-service:8000
+      REVIEWS_SERVICE_URL: http://reviews-service:8000
+      NOTIFICATIONS_SERVICE_URL: http://notifications-service:8000
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/', timeout=3)",
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 18
+      start_period: 90s
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - backend
+
   recommendations-service:
     build:
       context: ./recomendations-service
@@ -37,13 +79,11 @@ services:
     volumes:
       - ./recomendations-service:/app
     environment:
-      DB_HOST: postgres
-      DB_USER: library
-      DB_PASSWORD: library
-      DB_NAME: library
-      DB_PORT: "5432"
+      <<: *database-environment
     depends_on:
       postgres:
+        condition: service_healthy
+      monolith:
         condition: service_healthy
     networks:
       - backend
@@ -59,11 +99,7 @@ services:
     volumes:
       - ./reviews-services:/app
     environment:
-      DB_HOST: postgres
-      DB_USER: library
-      DB_PASSWORD: library
-      DB_NAME: library
-      DB_PORT: "5432"
+      <<: *database-environment
       NOTIFICATIONS_SERVICE_URL: http://notifications-service:8000
     depends_on:
       postgres:
@@ -84,11 +120,7 @@ services:
     volumes:
       - ./notifications-service:/app
     environment:
-      DB_HOST: postgres
-      DB_USER: library
-      DB_PASSWORD: library
-      DB_NAME: library
-      DB_PORT: "5432"
+      <<: *database-environment
     depends_on:
       postgres:
         condition: service_healthy

@@ -32,6 +32,7 @@ class Book(Base):
     cover = Column(String, nullable=True)
     rating = Column(Float, nullable=True)
     rating_count = Column(Integer, nullable=True)
+    created_at = Column(DateTime(timezone=True), nullable=True)
 
 
 class ReadingListEntry(Base):

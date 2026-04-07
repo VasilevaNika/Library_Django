@@ -2,6 +2,7 @@
 Pydantic-схемы микросервиса рекомендаций (как в docker-practice/main.py).
 """
 
+from datetime import datetime
 from enum import Enum
 from typing import List, Optional
 
@@ -38,6 +39,7 @@ class BookRecommendation(BaseModel):
     cover: Optional[str] = None
     rating: Optional[float] = None
     rating_count: Optional[int] = None
+    created_at: Optional[datetime] = None
 
     class Config:
         from_attributes = True

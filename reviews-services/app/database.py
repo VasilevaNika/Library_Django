@@ -1,14 +1,12 @@
-from sqlalchemy import create_engine
-from sqlalchemy.engine import URL
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
 import os
-from dotenv import load_dotenv
 
-# Загружаем переменные окружения из .env
+from dotenv import load_dotenv
+from sqlalchemy import create_engine
+from sqlalchemy.orm import declarative_base, sessionmaker
+
 load_dotenv()
 
-# Формируем строку подключения
+
 def _clean_env(name: str, default: str = "") -> str:
     value = os.getenv(name, default)
     if value is None:
@@ -16,32 +14,33 @@ def _clean_env(name: str, default: str = "") -> str:
     return value.replace("\ufeff", "").replace("\xa0", "").strip()
 
 
-DB_USER = _clean_env("DB_USER")
-DB_PASSWORD = _clean_env("DB_PASSWORD")
-DB_NAME = _clean_env("DB_NAME")
-DB_HOST = _clean_env("DB_HOST", "localhost")
-DB_PORT = _clean_env("DB_PORT", "5432")
+def _resolve_database_url() -> str:
+    """Та же БД, что у монолита: DATABASE_URL / MAIN_DATABASE_URL, иначе сборка из DB_*."""
+    for key in ("DATABASE_URL", "MAIN_DATABASE_URL"):
+        raw = os.getenv(key)
+        if raw and raw.strip():
+            u = raw.strip().replace("\ufeff", "").replace("\xa0", "").strip()
+            if u.startswith("postgres://"):
+                u = "postgresql://" + u[len("postgres://") :]
+            return u
+    return (
+        f"postgresql://{_clean_env('DB_USER')}:{_clean_env('DB_PASSWORD')}"
+        f"@{_clean_env('DB_HOST', 'localhost')}:{_clean_env('DB_PORT', '5432')}"
+        f"/{_clean_env('DB_NAME', 'library')}"
+    )
 
-DATABASE_URL = URL.create(
-    "postgresql+psycopg2",
-    username=DB_USER,
-    password=DB_PASSWORD,
-    host=DB_HOST,
-    port=int(DB_PORT),
-    database=DB_NAME,
-    query={"application_name": "reviews_microservice"},
+
+DATABASE_URL = _resolve_database_url()
+
+engine = create_engine(
+    DATABASE_URL,
+    echo=True,
+    connect_args={"application_name": "reviews_microservice"},
 )
-
-# Создаём engine (двигатель) - фабрика соединений
-engine = create_engine(DATABASE_URL, echo=True)  # echo=True для отладки SQL-запросов
-
-# Создаём SessionLocal - фабрика сессий
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
-# Базовый класс для моделей
 Base = declarative_base()
 
-# Зависимость для получения сессии БД в эндпоинтах
+
 def get_db():
     db = SessionLocal()
     try:

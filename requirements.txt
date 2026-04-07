@@ -1,0 +1,4 @@
+# Монолит Django (совместимо с venv проекта)
+Django>=3.2,<7
+psycopg2-binary>=2.9
+Pillow>=10.0

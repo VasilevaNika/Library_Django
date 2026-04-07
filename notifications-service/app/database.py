@@ -6,15 +6,24 @@ from sqlalchemy.orm import declarative_base, sessionmaker
 
 load_dotenv()
 
-DB_USER = os.getenv("DB_USER")
-DB_PASSWORD = os.getenv("DB_PASSWORD")
-DB_NAME = os.getenv("DB_NAME")
-DB_HOST = os.getenv("DB_HOST", "localhost")
-DB_PORT = os.getenv("DB_PORT", "5432")
 
-DATABASE_URL = (
-    f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
-)
+def _resolve_database_url() -> str:
+    """Та же БД, что у монолита: DATABASE_URL / MAIN_DATABASE_URL, иначе сборка из DB_*."""
+    for key in ("DATABASE_URL", "MAIN_DATABASE_URL"):
+        raw = os.getenv(key)
+        if raw and raw.strip():
+            u = raw.strip().replace("\ufeff", "").replace("\xa0", "").strip()
+            if u.startswith("postgres://"):
+                u = "postgresql://" + u[len("postgres://") :]
+            return u
+    return (
+        f"postgresql://{os.getenv('DB_USER', '')}:{os.getenv('DB_PASSWORD', '')}"
+        f"@{os.getenv('DB_HOST', 'localhost')}:{os.getenv('DB_PORT', '5432')}"
+        f"/{os.getenv('DB_NAME', 'library')}"
+    )
+
+
+DATABASE_URL = _resolve_database_url()
 
 engine = create_engine(DATABASE_URL, echo=True)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)

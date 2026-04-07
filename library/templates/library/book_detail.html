@@ -61,6 +61,43 @@
             </div>
         </div>
         {% endif %}
+
+        {% if user.is_authenticated and review_form %}
+        <div class="card shadow-sm mt-4 border-info" id="review-form">
+            <div class="card-header bg-light">
+                <h5 class="mb-0 text-dark">
+                    <i class="bi bi-chat-square-text"></i> Отзыв о книге
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="post" action="{% url 'submit_book_review' book.pk %}">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label" for="id_title">{{ review_form.title.label }}</label>
+                        {{ review_form.title }}
+                        {% if review_form.title.errors %}
+                        <div class="text-danger small">{{ review_form.title.errors }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label" for="id_content">{{ review_form.content.label }}</label>
+                        {{ review_form.content }}
+                    </div>
+                    <div class="mb-3 form-check">
+                        {{ review_form.is_published }}
+                        <label class="form-check-label" for="id_is_published">{{ review_form.is_published.label }}</label>
+                    </div>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-send"></i> Отправить отзыв
+                    </button>
+                </form>
+            </div>
+        </div>
+        {% elif not user.is_authenticated %}
+        <div class="alert alert-light border mt-4">
+            <a href="{% url 'login' %}?next={{ request.path }}#review-form">Войдите</a>, чтобы оставить отзыв.
+        </div>
+        {% endif %}
     </div>
 </div>
 {% endblock %}

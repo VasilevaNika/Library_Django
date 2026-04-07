@@ -108,7 +108,15 @@ def get_new_books(
     limit: int = Query(10, ge=1, description="Количество книг"),
     db: Session = Depends(get_db),
 ):
-    q = db.query(models.Book).order_by(models.Book.id.desc()).limit(limit)
+    # Сначала книги с датой (из монолита), новее выше; без даты (старые сиды) — в конец, там же id.
+    q = (
+        db.query(models.Book)
+        .order_by(
+            models.Book.created_at.desc().nulls_last(),
+            models.Book.id.desc(),
+        )
+        .limit(limit)
+    )
     return [_book_to_rec(b) for b in q.all()]
 
 

@@ -2,6 +2,33 @@ from django import forms
 from django.contrib.auth.models import User
 from .models import Profile
 
+
+class BookReviewForm(forms.Form):
+    """Отзыв для отправки в микросервис reviews (POST /reviews)."""
+
+    title = forms.CharField(
+        label="Заголовок отзыва",
+        max_length=200,
+        widget=forms.TextInput(attrs={"class": "form-control", "placeholder": "Краткий заголовок"}),
+    )
+    content = forms.CharField(
+        label="Текст отзыва",
+        required=False,
+        widget=forms.Textarea(
+            attrs={
+                "class": "form-control",
+                "rows": 4,
+                "placeholder": "Ваши впечатления о книге (необязательно)",
+            }
+        ),
+    )
+    is_published = forms.BooleanField(
+        label="Опубликовать отзыв",
+        required=False,
+        initial=True,
+        widget=forms.CheckboxInput(attrs={"class": "form-check-input"}),
+    )
+
 class UserUpdateForm(forms.ModelForm):
     email = forms.EmailField(
         label='Email',
