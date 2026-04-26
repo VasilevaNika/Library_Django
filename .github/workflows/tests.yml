@@ -1,0 +1,153 @@
+name: Microservices Tests
+
+# Когда запускается пайплайн:
+# - при каждом push в любую ветку
+# - при каждом pull request в ветку master
+on:
+  push:
+    branches:
+      - "**"
+  pull_request:
+    branches:
+      - master
+
+jobs:
+
+  # ──────────────────────────────────────────────────────────────
+  # JOB 1: Тесты reviews-service
+  # ──────────────────────────────────────────────────────────────
+  test-reviews-service:
+    name: "reviews-service (pytest)"
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: reviews-services   # все команды внутри этой папки
+
+    steps:
+      - name: Получить код репозитория
+        uses: actions/checkout@v4
+
+      - name: Установить Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+          cache-dependency-path: reviews-services/requirements-dev.txt
+
+      - name: Установить зависимости
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt -r requirements-dev.txt
+
+      - name: Запустить тесты с измерением покрытия
+        env:
+          DATABASE_URL: "sqlite:///:memory:"   # переопределяем БД для тестов
+        run: |
+          pytest tests/ -v --cov=app --cov-report=term-missing --cov-report=xml
+
+      - name: Загрузить отчёт о покрытии (артефакт)
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage-reviews
+          path: reviews-services/coverage.xml
+
+  # ──────────────────────────────────────────────────────────────
+  # JOB 2: Тесты notifications-service
+  # ──────────────────────────────────────────────────────────────
+  test-notifications-service:
+    name: "notifications-service (pytest)"
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: notifications-service
+
+    steps:
+      - name: Получить код репозитория
+        uses: actions/checkout@v4
+
+      - name: Установить Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+          cache-dependency-path: notifications-service/requirements-dev.txt
+
+      - name: Установить зависимости
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt -r requirements-dev.txt
+
+      - name: Запустить тесты с измерением покрытия
+        env:
+          DATABASE_URL: "sqlite:///:memory:"
+        run: |
+          pytest tests/ -v --cov=app --cov-report=term-missing --cov-report=xml
+
+      - name: Загрузить отчёт о покрытии (артефакт)
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage-notifications
+          path: notifications-service/coverage.xml
+
+  # ──────────────────────────────────────────────────────────────
+  # JOB 3: Тесты recomendations-service
+  # ──────────────────────────────────────────────────────────────
+  test-recomendations-service:
+    name: "recomendations-service (pytest)"
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: recomendations-service
+
+    steps:
+      - name: Получить код репозитория
+        uses: actions/checkout@v4
+
+      - name: Установить Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+          cache-dependency-path: recomendations-service/requirements-dev.txt
+
+      - name: Установить зависимости
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt -r requirements-dev.txt
+
+      - name: Запустить тесты с измерением покрытия
+        env:
+          DATABASE_URL: "sqlite:///:memory:"
+        run: |
+          pytest tests/ -v --cov=app --cov-report=term-missing --cov-report=xml
+
+      - name: Загрузить отчёт о покрытии (артефакт)
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage-recomendations
+          path: recomendations-service/coverage.xml
+
+  # ──────────────────────────────────────────────────────────────
+  # JOB 4: Итоговый статус (зависит от всех трёх)
+  # ──────────────────────────────────────────────────────────────
+  all-tests-passed:
+    name: "Все тесты прошли"
+    runs-on: ubuntu-latest
+    needs:
+      - test-reviews-service
+      - test-notifications-service
+      - test-recomendations-service
+
+    steps:
+      - name: Вывести итог
+        run: |
+          echo "✅ Все три микросервиса прошли тестирование!"
+          echo "   reviews-service       — OK"
+          echo "   notifications-service — OK"
+          echo "   recomendations-service — OK"
