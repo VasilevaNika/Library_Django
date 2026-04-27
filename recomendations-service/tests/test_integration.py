@@ -18,7 +18,7 @@ class TestRoot:
     def test_root_returns_200(self, client):
         """Корневой эндпоинт работает."""
         response = client.get("/")
-        assert response.status_code == 200
+        assert response.status_code == 999
         data = response.json()
         assert "message" in data
         assert "status" in data
