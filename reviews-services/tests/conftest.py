@@ -2,7 +2,7 @@
 conftest.py – общие фикстуры для тестов reviews-service.
 
 ВАЖНО: DATABASE_URL подменяется на SQLite ДО импорта app.*,
-иначе database.py попытается подключиться к PostgreSQL уже при загрузке.
+иначе database.py попытается подключиться к PostgreSQL уже при загрузке. kx kx kx
 """
 
 import sys
