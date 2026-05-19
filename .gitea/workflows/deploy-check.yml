@@ -32,15 +32,18 @@ jobs:
         run: |
           echo "Waiting for Django..."
           for i in $(seq 1 24); do
-            if curl -sf http://localhost:8004/ > /dev/null 2>&1; then
+            if docker compose -f docker-compose.prod.yml exec -T app \
+                python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/', timeout=3)" \
+                > /dev/null 2>&1; then
               echo "Django responded on attempt $i"
-              break
+              exit 0
             fi
             echo "Attempt $i/24 — not ready yet, waiting 5s..."
             sleep 5
           done
+          echo "Django did not respond after 2 minutes!"
+          docker compose -f docker-compose.prod.yml logs
+          exit 1
 
-      - name: Verify Django is responding
-        run: |
-          curl -f http://localhost:8004/ && echo "Django responded successfully!" \
-            || (echo "Django did not respond after 2 minutes!" && docker compose -f docker-compose.prod.yml logs && exit 1)
+      - name: Django responded successfully
+        run: echo "Django responded successfully!"
