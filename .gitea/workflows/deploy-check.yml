@@ -21,7 +21,9 @@ jobs:
         run: docker pull git.klsh.ru/team4/library:latest
 
       - name: Stop existing containers (if any)
-        run: docker compose -f docker-compose.prod.yml down --remove-orphans || true
+        run: |
+          docker compose -f docker-compose.prod.yml down --remove-orphans || true
+          docker ps -q --filter "publish=8004" | xargs -r docker rm -f || true
 
       - name: Start services
         run: docker compose -f docker-compose.prod.yml up -d
@@ -30,7 +32,7 @@ jobs:
         run: |
           echo "Waiting for Django..."
           for i in $(seq 1 24); do
-            if curl -sf http://localhost:8000/ > /dev/null 2>&1; then
+            if curl -sf http://localhost:8004/ > /dev/null 2>&1; then
               echo "Django responded on attempt $i"
               break
             fi
@@ -40,5 +42,5 @@ jobs:
 
       - name: Verify Django is responding
         run: |
-          curl -f http://localhost:8000/ && echo "Django responded successfully!" \
+          curl -f http://localhost:8004/ && echo "Django responded successfully!" \
             || (echo "Django did not respond after 2 minutes!" && docker compose -f docker-compose.prod.yml logs && exit 1)

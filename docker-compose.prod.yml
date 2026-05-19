@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   postgres:
     image: postgres:15
@@ -21,7 +19,7 @@ services:
   app:
     image: git.klsh.ru/team4/library:latest
     ports:
-      - "8000:8000"
+      - "8004:8000"
     environment:
       DATABASE_URL: postgresql://library:library@postgres:5432/library
       DJANGO_ALLOWED_HOSTS: team4.klsh.ru,localhost,127.0.0.1
