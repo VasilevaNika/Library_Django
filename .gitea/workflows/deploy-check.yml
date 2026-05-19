@@ -1,0 +1,44 @@
+name: Deploy Check
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Deploy and verify
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Login to Gitea Container Registry
+        run: |
+          echo "${{ secrets.RUNNER_TOKEN }}" | docker login git.klsh.ru \
+            -u team4 --password-stdin
+
+      - name: Pull latest image
+        run: docker pull git.klsh.ru/team4/library:latest
+
+      - name: Stop existing containers (if any)
+        run: docker compose -f docker-compose.prod.yml down --remove-orphans || true
+
+      - name: Start services
+        run: docker compose -f docker-compose.prod.yml up -d
+
+      - name: Wait for Django to start
+        run: |
+          echo "Waiting for Django..."
+          for i in $(seq 1 24); do
+            if curl -sf http://localhost:8000/ > /dev/null 2>&1; then
+              echo "Django responded on attempt $i"
+              break
+            fi
+            echo "Attempt $i/24 — not ready yet, waiting 5s..."
+            sleep 5
+          done
+
+      - name: Verify Django is responding
+        run: |
+          curl -f http://localhost:8000/ && echo "Django responded successfully!" \
+            || (echo "Django did not respond after 2 minutes!" && docker compose -f docker-compose.prod.yml logs && exit 1)

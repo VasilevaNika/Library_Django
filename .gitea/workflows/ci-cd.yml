@@ -1,0 +1,29 @@
+name: CI/CD Pipeline
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-and-push:
+    name: Build and push Docker image
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Login to Gitea Container Registry
+        run: |
+          echo "${{ secrets.RUNNER_TOKEN }}" | docker login git.klsh.ru \
+            -u team4 --password-stdin
+
+      - name: Build Docker image
+        run: |
+          docker build -t git.klsh.ru/team4/library:latest .
+
+      - name: Push Docker image to registry
+        run: |
+          docker push git.klsh.ru/team4/library:latest
+
+      - name: Image pushed successfully
+        run: echo "Image git.klsh.ru/team4/library:latest pushed successfully"
