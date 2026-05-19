@@ -5,3 +5,13 @@ __pycache__/
 .venv/
 venv/
 *.pyc
+
+gitconfig
+[credential]
+    helper = store
+
+[url "https://teamN:YOUR_PRIVET_TOKEN@git.klsh.ru/"]
+	insteadOf = https://git.klsh.ru/
+
+[url "https://teamN:YOUR_PRIVATE_TOKEN@git.klsh.ru/"]
+	insteadOf = git@git.klsh.ru:

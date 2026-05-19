@@ -70,9 +70,12 @@ def root():
 
 
 @app.get("/reviews", response_model=List[schemas.ReviewResponse])
-def read_reviews(db: Session = Depends(get_db)):
-    """Получить список всех отзывов."""
-    return db.query(models.Review).all()
+def read_reviews(book_id: Optional[int] = None, db: Session = Depends(get_db)):
+    """Получить список отзывов. Опционально фильтр по book_id."""
+    q = db.query(models.Review)
+    if book_id is not None:
+        q = q.filter(models.Review.book_id == book_id)
+    return q.all()
 
 
 @app.get("/reviews/{review_id}", response_model=schemas.ReviewResponse)

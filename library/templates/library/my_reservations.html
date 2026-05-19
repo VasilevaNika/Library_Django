@@ -1,0 +1,179 @@
+{% extends 'library/base.html' %}
+
+{% block content %}
+
+<div class="mb-4">
+    <a href="{% url 'profile' %}" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-arrow-left me-1"></i> Профиль
+    </a>
+</div>
+
+<div class="mb-5">
+    <p style="color: var(--c-primary); font-weight: 700; font-size: 0.75rem; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 0.4rem;">
+        Между строк
+    </p>
+    <h1 class="section-title" style="margin-bottom: 0;">
+        Мои бронирования
+        <span class="section-divider"></span>
+    </h1>
+</div>
+
+{% if reservations %}
+<div class="row g-3">
+    {% for res in reservations %}
+    <div class="col-md-6 col-lg-4">
+        <div class="card h-100" style="border: none;">
+            <div class="card-body" style="padding: 1.1rem 1.25rem;">
+
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    {% if res.queue_position %}
+                        <span class="badge" style="background: #f59e0b; color: #000; font-size: 0.7rem;">
+                            <i class="bi bi-hourglass-split me-1"></i>Очередь #{{ res.queue_position }}
+                        </span>
+                    {% elif res.status == 'active' %}
+                        <span class="badge" style="background: #3b82f6; font-size: 0.7rem;">
+                            <i class="bi bi-book me-1"></i>На руках
+                        </span>
+                    {% elif res.status == 'return_pending' %}
+                        <span class="badge" style="background: #a78bfa; color: #000; font-size: 0.7rem;">
+                            <i class="bi bi-hourglass me-1"></i>Ожидает проверки
+                        </span>
+                    {% elif res.status == 'pending' %}
+                        <span class="badge" style="background: #4ade80; color: #000; font-size: 0.7rem;">
+                            <i class="bi bi-bookmark-check me-1"></i>Забронировано
+                        </span>
+                    {% elif res.status == 'completed' %}
+                        <span class="badge bg-secondary" style="font-size: 0.7rem;">
+                            {% if res.warning %}<i class="bi bi-exclamation-triangle me-1"></i>{% endif %}
+                            Возвращена
+                        </span>
+                    {% elif res.status == 'cancelled' %}
+                        <span class="badge bg-secondary" style="font-size: 0.7rem;">Отменена</span>
+                    {% elif res.status == 'expired' %}
+                        <span class="badge bg-secondary" style="font-size: 0.7rem;">Истекла</span>
+                    {% endif %}
+
+                    <span style="font-size: 0.72rem; color: var(--c-text-muted);">
+                        {{ res.reserved_at|date:"d.m.Y" }}
+                    </span>
+                </div>
+
+                <h6 style="font-weight: 700; font-size: 0.9rem; margin-bottom: 0.2rem; line-height: 1.3;">
+                    {{ res.book.title|truncatechars:50 }}
+                </h6>
+                <p style="font-size: 0.78rem; color: var(--c-text-muted); margin-bottom: 0.75rem;">
+                    {{ res.book.author.name }}
+                </p>
+
+                <div style="font-size: 0.78rem; color: var(--c-text-muted); line-height: 1.8;">
+                    {% if res.book_copy %}
+                    <div><i class="bi bi-upc me-1"></i>Экз.: <strong>{{ res.book_copy.inventory_number }}</strong></div>
+                    {% endif %}
+                    {% if res.queue_position %}
+                    <div><i class="bi bi-people me-1"></i>Позиция: <strong>{{ res.queue_position }}</strong></div>
+                    {% elif res.status == 'pending' %}
+                    <div><i class="bi bi-calendar-event me-1"></i>Забрать до: <strong>{{ res.expires_at|date:"d.m.Y" }}</strong></div>
+                    {% endif %}
+                    {% if res.due_date %}
+                    <div><i class="bi bi-calendar-x me-1"></i>Вернуть до: <strong>{{ res.due_date|date:"d.m.Y" }}</strong></div>
+                    {% endif %}
+                    {% if res.returned_at %}
+                    <div><i class="bi bi-check-circle me-1" style="color: #4ade80;"></i>Возвращена: {{ res.returned_at|date:"d.m.Y" }}</div>
+                    {% endif %}
+                </div>
+
+                <!-- Rejection notice -->
+                {% if res.return_rejected_reason %}
+                <div style="
+                    margin-top: 0.75rem;
+                    background: rgba(239,68,68,0.1);
+                    border-left: 3px solid #ef4444;
+                    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+                    padding: 0.65rem 0.9rem;
+                ">
+                    <p style="font-size: 0.75rem; font-weight: 700; color: #ef4444; margin-bottom: 0.2rem;">
+                        <i class="bi bi-x-circle-fill me-1"></i>Возврат отклонён
+                    </p>
+                    <p style="font-size: 0.78rem; color: var(--c-text); margin: 0;">{{ res.return_rejected_reason }}</p>
+                </div>
+                {% endif %}
+
+                <!-- Warning notice -->
+                {% if res.warning %}
+                <div style="
+                    margin-top: 0.75rem;
+                    background: rgba(245,158,11,0.1);
+                    border-left: 3px solid #f59e0b;
+                    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+                    padding: 0.65rem 0.9rem;
+                ">
+                    <p style="font-size: 0.75rem; font-weight: 700; color: #f59e0b; margin-bottom: 0.2rem;">
+                        <i class="bi bi-exclamation-triangle-fill me-1"></i>Предупреждение от библиотеки
+                    </p>
+                    <p style="font-size: 0.78rem; color: var(--c-text); margin: 0;">{{ res.warning }}</p>
+                </div>
+                {% endif %}
+
+                <div class="d-flex flex-column gap-2 mt-3">
+                    {% if res.status == 'pending' and not res.queue_position %}
+                    <form method="post" action="{% url 'pickup_book' res.id %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-primary btn-sm w-100"
+                                onclick="return confirm('Подтвердить, что вы забрали книгу?')"
+                                style="font-size: 0.78rem;">
+                            <i class="bi bi-bag-check me-1"></i> Я забрал книгу
+                        </button>
+                    </form>
+                    {% endif %}
+                    {% if res.status == 'active' %}
+                    <form method="post" action="{% url 'return_book_request' res.id %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-outline-primary btn-sm w-100"
+                                onclick="return confirm('Подтвердить возврат книги в библиотеку?')"
+                                style="font-size: 0.78rem;">
+                            <i class="bi bi-arrow-return-left me-1"></i> Я вернул книгу
+                        </button>
+                    </form>
+                    {% endif %}
+                    <div class="d-flex gap-2">
+                        <a href="{% url 'book_detail' res.book.pk %}" class="btn btn-dark btn-sm flex-grow-1"
+                           style="font-size: 0.78rem;">
+                            О книге
+                        </a>
+                        {% if res.status == 'pending' %}
+                        <form method="post" action="{% url 'cancel_reservation' res.id %}">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-outline-danger btn-sm"
+                                    onclick="return confirm('Отменить бронирование?')"
+                                    style="font-size: 0.78rem;" title="Отменить">
+                                <i class="bi bi-x-circle"></i>
+                            </button>
+                        </form>
+                        {% endif %}
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div style="
+    background: var(--c-dark);
+    border-radius: var(--radius-lg);
+    padding: 3rem 2rem;
+    text-align: center;
+">
+    <i class="bi bi-bookmark" style="font-size: 2.5rem; color: var(--c-primary); display: block; margin-bottom: 1rem;"></i>
+    <h5 style="color: var(--c-text-inv); font-weight: 700; margin-bottom: 0.5rem;">
+        Нет бронирований
+    </h5>
+    <p style="color: var(--c-text-muted-inv); font-size: 0.88rem; margin-bottom: 1.25rem;">
+        Вы ещё не бронировали физические книги
+    </p>
+    <a href="{% url 'book_list' %}" class="btn btn-primary btn-sm">Перейти в каталог</a>
+</div>
+{% endif %}
+
+{% endblock %}

@@ -68,6 +68,24 @@ def format_service_error(parsed: Optional[Any]) -> str:
     return "Неизвестная ошибка сервиса."
 
 
+def fetch_book_reviews(book_id: int) -> list:
+    """Получить опубликованные отзывы о книге из микросервиса."""
+    base = (getattr(settings, "REVIEWS_SERVICE_URL", None) or "").strip().rstrip("/")
+    if not base:
+        return []
+    url = f"{base}/reviews?book_id={book_id}"
+    req = Request(url, headers={"Accept": "application/json"})
+    try:
+        with urlopen(req, timeout=4) as resp:
+            data = json.loads(resp.read().decode())
+        if not isinstance(data, list):
+            return []
+        return [r for r in data if isinstance(r, dict) and r.get("is_published")]
+    except (URLError, HTTPError, TimeoutError, OSError, ValueError, json.JSONDecodeError) as e:
+        logger.warning("reviews-service недоступен при получении отзывов: %s", e)
+        return []
+
+
 def create_review_via_service(
     *,
     user_id: int,

@@ -1,355 +1,308 @@
 {% extends 'library/base.html' %}
 
 {% block content %}
-<div class="container py-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 class="text-primary">
-            <i class="bi bi-person-circle"></i> Мой профиль
-        </h1>
-        <div>
-            <a href="{% url 'edit_profile' %}" class="btn btn-primary">
-                <i class="bi bi-pencil-square"></i> Редактировать профиль
-            </a>
+
+<!-- PAGE HEADER -->
+<div class="mb-5">
+    <p style="color: var(--c-primary); font-weight: 700; font-size: 0.75rem; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 0.4rem;">
+        Между строк
+    </p>
+    <h1 class="section-title" style="margin-bottom: 0;">
+        Мой профиль
+        <span class="section-divider"></span>
+    </h1>
+</div>
+
+<div class="row g-4 mb-5">
+
+    <!-- AVATAR CARD -->
+    <div class="col-md-4 col-lg-3">
+        <div class="card" style="border: none; text-align: center;">
+            <div class="card-body" style="padding: 2rem 1.5rem;">
+                <div class="avatar-circle mb-3" style="width: 96px; height: 96px; font-size: 2.2rem;">
+                    <i class="bi bi-person-fill"></i>
+                </div>
+
+                {% if user.first_name or user.last_name %}
+                    <h3 style="font-size: 1.3rem; font-weight: 800; letter-spacing: -0.02em; color: var(--c-primary); margin-bottom: 0.25rem;">
+                        {{ user.first_name }} {{ user.last_name }}
+                    </h3>
+                {% else %}
+                    <h3 style="font-size: 1.3rem; font-weight: 800; letter-spacing: -0.02em; color: var(--c-primary); margin-bottom: 0.25rem;">
+                        {{ user.username }}
+                    </h3>
+                    <p style="font-size: 0.78rem; color: var(--c-text-muted); margin-bottom: 0.5rem;">
+                        <a href="{% url 'edit_profile' %}" style="color: var(--c-primary);">Добавьте имя</a> в профиле
+                    </p>
+                {% endif %}
+
+                <p style="font-size: 0.85rem; color: var(--c-text-muted); margin-bottom: 1.25rem;">
+                    @{{ user.username }}
+                </p>
+
+                <div style="
+                    background: var(--c-dark);
+                    border-radius: var(--radius-md);
+                    padding: 0.75rem 1rem;
+                    margin-bottom: 1rem;
+                ">
+                    <p style="color: var(--c-text-muted-inv); font-size: 0.75rem; margin-bottom: 0.15rem;">На сайте с</p>
+                    <p style="color: var(--c-text-inv); font-weight: 700; font-size: 0.9rem; margin-bottom: 0;">
+                        {{ user.date_joined|date:"d.m.Y" }}
+                    </p>
+                    <p style="color: var(--c-primary); font-weight: 800; font-size: 1.3rem; margin-bottom: 0; letter-spacing: -0.03em;">
+                        {{ profile_age_days }} дней
+                    </p>
+                </div>
+
+                <a href="{% url 'edit_profile' %}" class="btn btn-primary btn-sm w-100" style="font-size: 0.8rem; letter-spacing: 0.02em;">
+                    <i class="bi bi-pencil me-1"></i> Редактировать
+                </a>
+            </div>
         </div>
     </div>
-    
-    <div class="row mb-5">
-        <div class="col-md-4">
-            <div class="card shadow-lg border-0">
-                <div class="card-body text-center p-4">
-                    <div class="mb-4">
-                        <div class="avatar-container mx-auto">
-                            <div class="avatar-circle d-flex align-items-center justify-content-center">
-                                <i class="bi bi-person-fill" style="font-size: 2.5rem; color: white;"></i>
-                            </div>
+
+    <!-- INFO CARD -->
+    <div class="col-md-8 col-lg-9">
+        <div class="card" style="border: none; height: 100%;">
+            <div class="card-header card-header-light">
+                <i class="bi bi-info-circle me-2" style="color: var(--c-primary);"></i>
+                Информация профиля
+            </div>
+            <div class="card-body">
+                <div class="row g-4">
+                    <div class="col-md-6">
+                        <h6 style="font-weight: 700; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.07em; color: var(--c-text-muted); margin-bottom: 1rem;">
+                            Контактные данные
+                        </h6>
+
+                        <div class="mb-3">
+                            <p style="font-size: 0.78rem; color: var(--c-text-muted); margin-bottom: 0.2rem;">Email</p>
+                            <p style="font-weight: 600; margin: 0;">{{ user.email|default:"Не указан" }}</p>
                         </div>
+
+                        {% if profile.email %}
+                        <div class="mb-3">
+                            <p style="font-size: 0.78rem; color: var(--c-text-muted); margin-bottom: 0.2rem;">Доп. email</p>
+                            <p style="font-weight: 600; margin: 0;">{{ profile.email }}</p>
+                        </div>
+                        {% endif %}
+
+                        {% if profile.phone_number %}
+                        <div class="mb-3">
+                            <p style="font-size: 0.78rem; color: var(--c-text-muted); margin-bottom: 0.2rem;">Телефон</p>
+                            <p style="font-weight: 600; margin: 0;">{{ profile.phone_number }}</p>
+                        </div>
+                        {% endif %}
                     </div>
-                    
-                    {% if user.first_name or user.last_name %}
-                        <div class="user-name-display mb-3">
-                            <h2 class="display-name gradient-text">
-                                {{ user.first_name }} {{ user.last_name }}
-                            </h2>
-                            <div class="name-underline"></div>
-                        </div>
-                    {% else %}
-                        <div class="user-name-display mb-3">
-                            <h2 class="display-name gradient-text">
-                                {{ user.username }}
-                            </h2>
-                            <div class="name-underline"></div>
-                            <p class="text-muted small mt-2">
-                                <i class="bi bi-info-circle"></i> Добавьте имя в 
-                                <a href="{% url 'edit_profile' %}">редактировании профиля</a>
+
+                    <div class="col-md-6">
+                        <h6 style="font-weight: 700; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.07em; color: var(--c-text-muted); margin-bottom: 1rem;">
+                            Личная информация
+                        </h6>
+
+                        {% if profile.birth_date %}
+                        <div class="mb-3">
+                            <p style="font-size: 0.78rem; color: var(--c-text-muted); margin-bottom: 0.2rem;">Дата рождения</p>
+                            <p style="font-weight: 600; margin: 0;">
+                                {{ profile.birth_date|date:"d.m.Y" }}
+                                {% if profile.age %}
+                                    <span style="color: var(--c-text-muted); font-weight: 400;">({{ profile.age }} лет)</span>
+                                {% endif %}
                             </p>
                         </div>
-                    {% endif %}
-                    
-                    <div class="mb-3">
-                        <p class="text-muted mb-1">
-                            <i class="bi bi-at"></i> Имя пользователя
-                        </p>
-                        <h5 class="username fw-bold text-dark">
-                            @{{ user.username }}
-                        </h5>
-                    </div>
-                    
-                    <div class="mt-4">
-                        <span class="badge bg-gradient-date fs-6 p-3">
-                            <i class="bi bi-calendar-check me-2"></i>
-                            На сайте с {{ user.date_joined|date:"d.m.Y" }}
-                        </span>
-                        <p class="text-muted small mt-2">
-                            <i class="bi bi-clock"></i> {{ profile_age_days }} дней на сайте
-                        </p>
+                        {% endif %}
+
+                        {% if profile.bio %}
+                        <div class="mb-3">
+                            <p style="font-size: 0.78rem; color: var(--c-text-muted); margin-bottom: 0.2rem;">О себе</p>
+                            <p style="font-weight: 400; line-height: 1.6; margin: 0; font-size: 0.9rem;">{{ profile.bio|linebreaks }}</p>
+                        </div>
+                        {% endif %}
                     </div>
                 </div>
-            </div>
-        </div>
-        
-        <div class="col-md-8">
-            <div class="card">
-                <div class="card-header bg-light">
-                    <h4 class="mb-0">
-                        <i class="bi bi-info-circle"></i> Информация профиля
-                    </h4>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <h5 class="border-bottom pb-2 mb-3">Контактные данные</h5>
-                            
-                            <div class="mb-3">
-                                <strong><i class="bi bi-envelope"></i> Email для входа:</strong>
-                                <p class="mb-1">{{ user.email|default:"Не указан" }}</p>
-                            </div>
-                            
-                            {% if profile.email %}
-                            <div class="mb-3">
-                                <strong><i class="bi bi-envelope-plus"></i> Дополнительный email:</strong>
-                                <p class="mb-1">{{ profile.email }}</p>
-                            </div>
-                            {% endif %}
-                            
-                            {% if profile.phone_number %}
-                            <div class="mb-3">
-                                <strong><i class="bi bi-telephone"></i> Телефон:</strong>
-                                <p class="mb-1">{{ profile.phone_number }}</p>
-                            </div>
-                            {% endif %}
+
+                <!-- STATS -->
+                <div style="
+                    background: var(--c-dark);
+                    border-radius: var(--radius-md);
+                    padding: 1.25rem 1.5rem;
+                    margin-top: 1.5rem;
+                ">
+                    <div class="row g-3 text-center">
+                        <div class="col-4">
+                            <div class="stat-number">{{ favorites_count }}</div>
+                            <div class="stat-label" style="color: var(--c-text-muted-inv);">Избранных книг</div>
                         </div>
-                        
-                        <div class="col-md-6">
-                            <h5 class="border-bottom pb-2 mb-3">Личная информация</h5>
-                            
-                            {% if profile.birth_date %}
-                            <div class="mb-3">
-                                <strong><i class="bi bi-balloon"></i> Дата рождения:</strong>
-                                <p class="mb-1">
-                                    {{ profile.birth_date|date:"d.m.Y" }}
-                                    {% if profile.age %}
-                                        <span class="text-muted">({{ profile.age }} лет)</span>
-                                    {% endif %}
-                                </p>
-                            </div>
-                            {% endif %}
-                            
-                            {% if profile.bio %}
-                            <div class="mb-3">
-                                <strong><i class="bi bi-card-text"></i> О себе:</strong>
-                                <p class="mb-1">{{ profile.bio|linebreaks }}</p>
-                            </div>
-                            {% endif %}
+                        <div class="col-4">
+                            <div class="stat-number">{{ profile_age_days }}</div>
+                            <div class="stat-label" style="color: var(--c-text-muted-inv);">Дней на сайте</div>
                         </div>
-                    </div>
-                    
-                    <div class="mt-4 p-3 rounded stats-container">
-                        <h5 class="border-bottom pb-2 mb-3">Моя статистика</h5>
-                        <div class="row text-center">
-                            <div class="col-md-4">
-                                <div class="p-2">
-                                    <h3 class="text-primary">{{ favorites_count }}</h3>
-                                    <p class="mb-0 text-muted">Избранных книг</p>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="p-2">
-                                    <h3 class="text-success">{{ profile_age_days }}</h3>
-                                    <p class="mb-0 text-muted">
-                                        <i class="bi bi-clock-history"></i> Дней на сайте
-                                    </p>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="p-2">
-                                    <h3 class="text-warning">
-                                        {{ user.date_joined|date:"Y" }}
-                                    </h3>
-                                    <p class="mb-0 text-muted">Год регистрации</p>
-                                </div>
-                            </div>
+                        <div class="col-4">
+                            <div class="stat-number">{{ user.date_joined|date:"Y" }}</div>
+                            <div class="stat-label" style="color: var(--c-text-muted-inv);">Год регистрации</div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
-    </div>
-    
-    <div class="card">
-        <div class="card-header bg-primary text-white">
-            <h4 class="mb-0">
-                <i class="bi bi-heart-fill"></i> Мои избранные книги ({{ favorites_count }})
-            </h4>
-        </div>
-        <div class="card-body">
-            {% if favorite_books %}
-                <div class="row">
-                    {% for book in favorite_books %}
-                    <div class="col-md-6 col-lg-4 mb-4">
-                        <div class="card h-100 shadow-sm">
-                            <div class="row g-0 h-100">
-                                <div class="col-md-4">
-                                    {% if book.cover %}
-                                        <img src="{{ book.cover.url }}" 
-                                             class="img-fluid rounded-start h-100"
-                                             alt="{{ book.title }}"
-                                             style="object-fit: cover;">
-                                    {% else %}
-                                        <div class="h-100 d-flex align-items-center justify-content-center bg-light text-center p-3">
-                                            <div>
-                                                <i class="bi bi-book" style="font-size: 2rem;"></i>
-                                                <p class="small mt-2">{{ book.title|truncatechars:20 }}</p>
-                                            </div>
-                                        </div>
-                                    {% endif %}
-                                </div>
-                                <div class="col-md-8">
-                                    <div class="card-body d-flex flex-column h-100">
-                                        <h6 class="card-title">{{ book.title|truncatechars:40 }}</h6>
-                                        <p class="card-text small text-muted">
-                                            <i class="bi bi-person"></i> {{ book.author.name }}
-                                        </p>
-                                        
-                                        <div class="mt-auto">
-                                            <div class="d-flex justify-content-between align-items-center">
-                                                <a href="{% url 'book_detail' book.pk %}" 
-                                                   class="btn btn-sm btn-outline-primary">
-                                                    <i class="bi bi-eye"></i> Подробнее
-                                                </a>
-                                                
-                                                <form method="post" action="{% url 'toggle_favorite' book.id %}" class="d-inline">
-                                                    {% csrf_token %}
-                                                    <button type="submit" class="btn btn-sm btn-outline-danger">
-                                                        <i class="bi bi-heartbreak"></i> Удалить
-                                                    </button>
-                                                </form>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    {% endfor %}
-                </div>
-            {% else %}
-                <div class="text-center py-5">
-                    <i class="bi bi-heart" style="font-size: 3rem; color: #ddd;"></i>
-                    <h5 class="mt-3 text-muted">У вас пока нет избранных книг</h5>
-                    <p class="text-muted">Добавляйте книги в избранное, чтобы они появились здесь</p>
-                    <a href="{% url 'book_list' %}" class="btn btn-primary">
-                        <i class="bi bi-search"></i> Найти книги
-                    </a>
-                </div>
-            {% endif %}
         </div>
     </div>
 </div>
 
-<style>
-.user-name-display {
-    position: relative;
-    padding-bottom: 15px;
-}
+<!-- ACTIVE RESERVATIONS -->
+{% if active_reservations %}
+<div class="mb-5">
+    <h2 class="section-title">
+        Мои бронирования
+        <span style="color: var(--c-text-muted); font-weight: 400; font-size: 1rem; letter-spacing: 0;">
+            ({{ active_reservations|length }})
+        </span>
+        <span class="section-divider"></span>
+    </h2>
 
-.display-name {
-    font-size: 2.2rem;
-    font-weight: 800;
-    letter-spacing: 0.5px;
-    margin-bottom: 0;
-    text-align: center;
-    line-height: 1.2;
-}
+    <div class="row g-3">
+        {% for res in active_reservations %}
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100" style="border: none;">
+                <div class="card-body" style="padding: 1.1rem 1.25rem;">
 
-.gradient-text {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-    background-size: 200% auto;
-    animation: gradient 3s ease infinite;
-}
+                    <!-- Status badge -->
+                    <div class="mb-2">
+                        {% if res.queue_position %}
+                            <span class="badge" style="background: #f59e0b; color: #000; font-size: 0.7rem;">
+                                <i class="bi bi-hourglass-split me-1"></i>Очередь #{{ res.queue_position }}
+                            </span>
+                        {% elif res.status == 'active' %}
+                            <span class="badge" style="background: #3b82f6; font-size: 0.7rem;">
+                                <i class="bi bi-book me-1"></i>На руках
+                            </span>
+                        {% else %}
+                            <span class="badge" style="background: #4ade80; color: #000; font-size: 0.7rem;">
+                                <i class="bi bi-bookmark-check me-1"></i>Забронировано
+                            </span>
+                        {% endif %}
+                    </div>
 
-.name-underline {
-    width: 80px;
-    height: 4px;
-    background: linear-gradient(90deg, #667eea, #764ba2);
-    margin: 8px auto 0;
-    border-radius: 2px;
-}
+                    <h6 style="font-weight: 700; font-size: 0.9rem; margin-bottom: 0.2rem; line-height: 1.3;">
+                        {{ res.book.title|truncatechars:50 }}
+                    </h6>
+                    <p style="font-size: 0.78rem; color: var(--c-text-muted); margin-bottom: 0.75rem;">
+                        {{ res.book.author.name }}
+                    </p>
 
-.avatar-container {
-    width: 150px;
-    height: 150px;
-}
+                    <div style="font-size: 0.78rem; color: var(--c-text-muted); line-height: 1.8;">
+                        {% if res.book_copy %}
+                        <div><i class="bi bi-upc me-1"></i>Экз.: <strong>{{ res.book_copy.inventory_number }}</strong></div>
+                        {% endif %}
+                        {% if res.queue_position %}
+                        <div><i class="bi bi-people me-1"></i>Позиция в очереди: <strong>{{ res.queue_position }}</strong></div>
+                        {% else %}
+                        <div><i class="bi bi-calendar-event me-1"></i>Забрать до: <strong>{{ res.expires_at|date:"d.m.Y" }}</strong></div>
+                        {% endif %}
+                        {% if res.due_date %}
+                        <div><i class="bi bi-calendar-x me-1"></i>Вернуть до: <strong>{{ res.due_date|date:"d.m.Y" }}</strong></div>
+                        {% endif %}
+                    </div>
 
-.avatar-circle {
-    width: 150px;
-    height: 150px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
-    border: 5px solid white;
-    overflow: hidden;
-    transition: transform 0.3s ease;
-}
+                    <div class="d-flex gap-2 mt-3">
+                        <a href="{% url 'book_detail' res.book.pk %}" class="btn btn-dark btn-sm flex-grow-1"
+                           style="font-size: 0.78rem;">
+                            О книге
+                        </a>
+                        {% if res.status == 'pending' %}
+                        <form method="post" action="{% url 'cancel_reservation' res.id %}">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-outline-danger btn-sm"
+                                    onclick="return confirm('Отменить бронирование?')"
+                                    style="font-size: 0.78rem;" title="Отменить">
+                                <i class="bi bi-x-circle"></i>
+                            </button>
+                        </form>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
 
-.avatar-circle:hover {
-    transform: scale(1.05);
-}
+<!-- FAVORITES -->
+<div>
+    <h2 class="section-title">
+        Избранные книги
+        <span style="color: var(--c-text-muted); font-weight: 400; font-size: 1rem; letter-spacing: 0;">
+            ({{ favorites_count }})
+        </span>
+        <span class="section-divider"></span>
+    </h2>
 
-.username {
-    font-size: 1.3rem;
-    color: #2d3436;
-    padding: 8px 15px;
-    background: rgba(0, 0, 0, 0.03);
-    border-radius: 20px;
-    display: inline-block;
-}
-
-.badge.bg-gradient-date {
-    background: linear-gradient(135deg, #36d1dc, #5b86e5);
-    border: none;
-    border-radius: 10px;
-}
-
-.stats-container {
-    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-    border: 1px solid rgba(0, 0, 0, 0.05);
-}
-
-.card {
-    border-radius: 15px;
-    overflow: hidden;
-    transition: transform 0.3s, box-shadow 0.3s;
-}
-
-.card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 15px 30px rgba(0,0,0,0.1) !important;
-}
-
-.border-bottom {
-    border-color: #667eea !important;
-}
-
-.btn-primary {
-    background: linear-gradient(135deg, #667eea, #764ba2);
-    border: none;
-}
-
-.btn-primary:hover {
-    background: linear-gradient(135deg, #5a6fd8, #6a4190);
-    transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
-}
-
-@keyframes gradient {
-    0% {
-        background-position: 0% 50%;
-    }
-    50% {
-        background-position: 100% 50%;
-    }
-    100% {
-        background-position: 0% 50%;
-    }
-}
-
-@media (max-width: 768px) {
-    .display-name {
-        font-size: 1.8rem;
-    }
-    
-    .avatar-container {
-        width: 120px;
-        height: 120px;
-    }
-    
-    .avatar-circle {
-        width: 120px;
-        height: 120px;
-    }
-}
-</style>
+    {% if favorite_books %}
+        <div class="row g-3">
+            {% for book in favorite_books %}
+            <div class="col-md-6 col-lg-4">
+                <div class="card h-100" style="border: none;">
+                    <div class="row g-0 h-100">
+                        <div class="col-4">
+                            {% if book.cover %}
+                                <img src="{{ book.cover.url }}"
+                                     class="h-100 w-100"
+                                     alt="{{ book.title }}"
+                                     style="object-fit: cover; border-radius: var(--radius-lg) 0 0 var(--radius-lg);">
+                            {% else %}
+                                <div style="
+                                    height: 100%; min-height: 110px;
+                                    background: var(--c-dark-2);
+                                    border-radius: var(--radius-lg) 0 0 var(--radius-lg);
+                                    display: flex; align-items: center; justify-content: center;
+                                ">
+                                    <i class="bi bi-book" style="font-size: 1.5rem; color: var(--c-primary);"></i>
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="col-8">
+                            <div class="card-body d-flex flex-column h-100" style="padding: 1rem;">
+                                <h6 style="font-weight: 700; font-size: 0.88rem; line-height: 1.3; margin-bottom: 0.25rem;">
+                                    {{ book.title|truncatechars:45 }}
+                                </h6>
+                                <p style="font-size: 0.78rem; color: var(--c-text-muted); margin-bottom: 0.75rem;">
+                                    {{ book.author.name }}
+                                </p>
+                                <div class="mt-auto d-flex gap-2">
+                                    <a href="{% url 'book_detail' book.pk %}" class="btn btn-dark btn-sm flex-grow-1">
+                                        Открыть
+                                    </a>
+                                    <form method="post" action="{% url 'toggle_favorite' book.id %}" class="d-inline">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-outline-danger btn-sm" title="Удалить из избранного">
+                                            <i class="bi bi-heartbreak"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div style="
+            background: var(--c-dark);
+            border-radius: var(--radius-lg);
+            padding: 3rem 2rem;
+            text-align: center;
+        ">
+            <i class="bi bi-heart" style="font-size: 2.5rem; color: var(--c-primary); display: block; margin-bottom: 1rem;"></i>
+            <h5 style="color: var(--c-text-inv); font-weight: 700; margin-bottom: 0.5rem;">
+                Нет избранных книг
+            </h5>
+            <p style="color: var(--c-text-muted-inv); font-size: 0.88rem; margin-bottom: 1.25rem;">
+                Добавляйте книги в избранное, чтобы они появились здесь
+            </p>
+            <a href="{% url 'book_list' %}" class="btn btn-primary btn-sm">Перейти в каталог</a>
+        </div>
+    {% endif %}
+</div>
 {% endblock %}

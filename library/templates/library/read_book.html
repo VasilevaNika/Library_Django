@@ -1,147 +1,174 @@
 {% extends 'library/base.html' %}
 
 {% block content %}
-<div class="container-fluid px-4">
-    <nav aria-label="breadcrumb" class="mb-4">
-        <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="/">Главная</a></li>
-            <li class="breadcrumb-item"><a href="/books/">Книги</a></li>
-            <li class="breadcrumb-item"><a href="/books/{{ book.pk }}/">{{ book.title|truncatechars:30 }}</a></li>
-            <li class="breadcrumb-item active gradient-text">Чтение онлайн</li>
-        </ol>
-    </nav>
 
-    <div class="row">
-        <div class="col-lg-3">
-            <div class="card shadow-lg sticky-top" style="top: 20px;">
-                <div class="card-body text-center">
-                    {% if book.cover %}
-                    <img src="{{ book.cover.url }}" 
-                         class="img-fluid rounded mb-3" 
-                         alt="{{ book.title }}"
-                         style="max-height: 250px; object-fit: cover;">
-                    {% else %}
-                    <div class="gradient-placeholder rounded mb-3 d-flex align-items-center justify-content-center" 
-                         style="height: 250px;">
-                        <i class="bi bi-book text-white" style="font-size: 4rem;"></i>
-                    </div>
+<!-- BREADCRUMB -->
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="/">Главная</a></li>
+        <li class="breadcrumb-item"><a href="/books/">Каталог</a></li>
+        <li class="breadcrumb-item"><a href="/books/{{ book.pk }}/">{{ book.title|truncatechars:28 }}</a></li>
+        <li class="breadcrumb-item active">Чтение</li>
+    </ol>
+</nav>
+
+<div class="row g-4">
+
+    <!-- BOOK INFO SIDEBAR -->
+    <div class="col-lg-3">
+        <div class="card sticky-top" style="top: 20px; border: none;">
+            {% if book.cover %}
+            <img src="{{ book.cover.url }}"
+                 class="card-img-top"
+                 alt="{{ book.title }}"
+                 style="height: 220px; object-fit: cover; border-radius: var(--radius-lg) var(--radius-lg) 0 0;">
+            {% else %}
+            <div style="
+                height: 220px;
+                background: var(--c-dark-2);
+                border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+                display: flex; align-items: center; justify-content: center;
+            ">
+                <i class="bi bi-book" style="font-size: 3rem; color: var(--c-primary);"></i>
+            </div>
+            {% endif %}
+
+            <div class="card-body" style="padding: 1.1rem;">
+                <h5 style="font-weight: 800; font-size: 0.95rem; line-height: 1.3; margin-bottom: 0.4rem;">
+                    {{ book.title|truncatechars:50 }}
+                </h5>
+                <p style="font-size: 0.82rem; color: var(--c-text-muted); margin-bottom: 0.75rem;">
+                    {{ book.author.name }}
+                </p>
+                <div class="mb-3">
+                    {% for genre in book.genres.all %}
+                        <span class="badge bg-secondary me-1 mb-1">{{ genre.name }}</span>
+                    {% endfor %}
+                </div>
+
+                <div class="d-grid gap-2">
+                    <a href="/books/{{ book.pk }}/" class="btn btn-outline-secondary btn-sm">
+                        <i class="bi bi-arrow-left me-1"></i> Назад к книге
+                    </a>
+                    {% if book.book_file %}
+                    <a href="{{ book.book_file.url }}" class="btn btn-dark btn-sm" download>
+                        <i class="bi bi-download me-1"></i> Скачать
+                    </a>
                     {% endif %}
-
-                    <h4 class="fw-bold mb-2">{{ book.title|truncatechars:30 }}</h4>
-                    <p class="text-muted mb-3">
-                        <i class="bi bi-person"></i> {{ book.author.name }}
-                    </p>
-                    
-                    <div class="mb-4">
-                        {% for genre in book.genres.all %}
-                            <span class="badge bg-primary me-1 mb-1">{{ genre.name }}</span>
-                        {% endfor %}
-                    </div>
-        
-                    <div class="d-grid gap-2">
-                        <a href="/books/{{ book.pk }}/" class="btn btn-outline-primary">
-                            <i class="bi bi-arrow-left"></i> Назад к книге
-                        </a>
-                        
-                        {% if book.book_file %}
-                        <a href="{{ book.book_file.url }}" 
-                           class="btn btn-success" 
-                           download>
-                            <i class="bi bi-download"></i> Скачать книгу
-                        </a>
-                        {% endif %}
-                    </div>
                 </div>
             </div>
         </div>
+    </div>
 
-        <div class="col-lg-9">
-            <div class="card shadow-lg">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <div>
-                        <h3 class="mb-0">
-                            <i class="bi bi-book"></i> {{ book.title }}
-                        </h3>
+    <!-- READER -->
+    <div class="col-lg-9">
+        <div class="card" style="border: none; box-shadow: var(--shadow-md);">
+
+            <!-- READER HEADER -->
+            <div class="card-header" style="background: var(--c-dark);">
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="bi bi-book-open" style="color: var(--c-primary); font-size: 1.1rem;"></i>
+                        <span style="font-weight: 700;">{{ book.title|truncatechars:40 }}</span>
                         {% if book.book_file %}
-                        <span class="badge bg-info">
-                            <i class="bi bi-file-text"></i> 
+                        <span class="badge" style="background: var(--c-primary-subtle); color: var(--c-primary); border: 1px solid var(--c-primary);">
                             {{ book.book_file.name|slice:"-4:"|upper }}
                         </span>
                         {% endif %}
                     </div>
-                    
-                    <div class="d-flex align-items-center">
-                        {% if not is_pdf and not error %}
-                        <div class="btn-group me-3" role="group">
-                            <button class="btn btn-outline-secondary" onclick="changeFontSize(-1)">
-                                <i class="bi bi-type"></i> A-
-                            </button>
-                            <button class="btn btn-outline-secondary" onclick="changeFontSize(0)">
-                                A
-                            </button>
-                            <button class="btn btn-outline-secondary" onclick="changeFontSize(1)">
-                                A+
-                            </button>
+
+                    {% if not is_pdf and not error %}
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="btn-group btn-group-sm">
+                            <button class="btn btn-outline-secondary" onclick="changeFontSize(-1)" title="Уменьшить шрифт">A−</button>
+                            <button class="btn btn-outline-secondary" onclick="changeFontSize(0)" title="Сбросить шрифт">A</button>
+                            <button class="btn btn-outline-secondary" onclick="changeFontSize(1)" title="Увеличить шрифт">A+</button>
                         </div>
-                        
-                        <div class="btn-group" role="group">
-                            <button class="btn btn-outline-primary" onclick="previousPage()">
+                        <div class="btn-group btn-group-sm">
+                            <button class="btn btn-primary" onclick="previousPage()">
                                 <i class="bi bi-chevron-left"></i> Назад
                             </button>
-                            <button class="btn btn-outline-primary" onclick="nextPage()">
-                                Вперед <i class="bi bi-chevron-right"></i>
+                            <button class="btn btn-primary" onclick="nextPage()">
+                                Вперёд <i class="bi bi-chevron-right"></i>
                             </button>
                         </div>
-                        {% endif %}
                     </div>
-                </div>
-                
-                <div class="card-body p-0">
-                    {% if error %}
-                        <div class="alert alert-warning m-4">
-                            <h5><i class="bi bi-exclamation-triangle"></i> Ошибка</h5>
-                            <p class="mb-0">{{ error }}</p>
-                        </div>
-                    {% elif is_pdf %}
-                        <div class="pdf-viewer">
-                            {% if book.book_file %}
-                            <iframe 
-                                src="{{ book.book_file.url }}#toolbar=0&navpanes=0" 
-                                width="100%" 
-                                height="700px" 
-                                style="border: none;"
-                                title="Чтение книги {{ book.title }}"
-                            >
-                                <div class="alert alert-info m-4">
-                                    <h5><i class="bi bi-info-circle"></i> Браузер не поддерживает PDF</h5>
-                                    <p class="mb-0">
-                                        Ваш браузер не поддерживает встроенные PDF.
-                                        <a href="{{ book.book_file.url }}" class="btn btn-primary ms-2">
-                                            <i class="bi bi-download"></i> Скачайте книгу
-                                        </a>
-                                    </p>
-                                </div>
-                            </iframe>
-                            {% endif %}
-                        </div>
-                    {% else %}
-                        <div class="reading-area">
-                            <div class="p-4 border-bottom bg-light">
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <span class="text-muted" id="pageInfo">Страница 1 из 1</span>
-                                    <span class="text-muted">
-                                        <i class="bi bi-clock"></i> 
-                                        Примерное время чтения: <span id="readingTime">0 мин</span>
-                                    </span>
-                                </div>
-                            </div>
-                            
-                            <div id="textContent" class="book-content p-4">
-                                {{ content|linebreaks }}
-                            </div>
-                        </div>
                     {% endif %}
                 </div>
+            </div>
+
+            <!-- READER BODY -->
+            <div class="card-body" style="padding: 0;">
+                {% if error %}
+                    <div class="alert alert-warning m-4">
+                        <h6 style="font-weight: 700;"><i class="bi bi-exclamation-triangle me-2"></i>Ошибка</h6>
+                        <p style="margin: 0; font-size: 0.9rem;">{{ error }}</p>
+                    </div>
+
+                {% elif is_pdf %}
+                    <div class="pdf-viewer">
+                        {% if book.book_file %}
+                        <iframe
+                            src="{{ book.book_file.url }}#toolbar=0&navpanes=0"
+                            width="100%"
+                            height="720px"
+                            style="border: none; border-radius: 0 0 var(--radius-lg) var(--radius-lg);"
+                            title="Чтение: {{ book.title }}">
+                            <div class="alert alert-info m-4">
+                                <p>Браузер не поддерживает встроенные PDF.
+                                    <a href="{{ book.book_file.url }}" class="btn btn-primary btn-sm ms-2">
+                                        <i class="bi bi-download"></i> Скачать
+                                    </a>
+                                </p>
+                            </div>
+                        </iframe>
+                        {% endif %}
+                    </div>
+
+                {% else %}
+                    <!-- TEXT READER -->
+                    <div style="
+                        padding: 0.75rem 1.5rem;
+                        background: var(--c-light-2);
+                        border-bottom: 1px solid var(--c-light-3);
+                        display: flex; justify-content: space-between; align-items: center;
+                        font-size: 0.82rem; color: var(--c-text-muted);
+                    ">
+                        <span id="pageInfo">Страница 1 из 1</span>
+                        <span>
+                            <i class="bi bi-clock me-1"></i>
+                            Время чтения: <span id="readingTime" style="font-weight: 600; color: var(--c-primary);">0 мин</span>
+                        </span>
+                    </div>
+
+                    <div id="textContent" style="
+                        font-size: 16px;
+                        line-height: 1.85;
+                        text-align: justify;
+                        font-family: Georgia, 'Times New Roman', serif;
+                        padding: 2.5rem 3rem;
+                        min-height: 520px;
+                        color: var(--c-text);
+                        background: #fff;
+                    ">
+                        {{ content|linebreaks }}
+                    </div>
+
+                    <div style="
+                        padding: 1rem 1.5rem;
+                        background: var(--c-light-2);
+                        border-top: 1px solid var(--c-light-3);
+                        border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+                        display: flex; justify-content: space-between; gap: 1rem;
+                    ">
+                        <button class="btn btn-outline-secondary btn-sm" onclick="previousPage()">
+                            <i class="bi bi-chevron-left me-1"></i> Предыдущая
+                        </button>
+                        <button class="btn btn-primary btn-sm" onclick="nextPage()">
+                            Следующая <i class="bi bi-chevron-right ms-1"></i>
+                        </button>
+                    </div>
+                {% endif %}
             </div>
         </div>
     </div>
@@ -155,138 +182,65 @@ let pages = [];
 let fontSize = 16;
 
 function paginateText() {
-    const content = document.getElementById('textContent');
-    const text = content.textContent;
-    const words = text.split(' ');
-    const wordsPerPage = 400;
-    
+    const el = document.getElementById('textContent');
+    const words = el.textContent.split(' ');
+    const perPage = 400;
     pages = [];
-    for (let i = 0; i < words.length; i += wordsPerPage) {
-        pages.push(words.slice(i, i + wordsPerPage).join(' '));
+    for (let i = 0; i < words.length; i += perPage) {
+        pages.push(words.slice(i, i + perPage).join(' '));
     }
-    
     totalPages = pages.length;
     updateReadingTime();
-    showPage(currentPage);
+    showPage(1);
 }
 
-function showPage(page) {
-    if (page < 1) page = 1;
-    if (page > totalPages) page = totalPages;
-    
-    currentPage = page;
-    document.getElementById('textContent').innerHTML = pages[page - 1];
-    document.getElementById('pageInfo').textContent = `Страница ${page} из ${totalPages}`;
-    
-    window.scrollTo({ top: 400, behavior: 'smooth' });
+function showPage(p) {
+    currentPage = Math.min(Math.max(p, 1), totalPages);
+    document.getElementById('textContent').innerHTML = pages[currentPage - 1];
+    document.getElementById('pageInfo').textContent = `Страница ${currentPage} из ${totalPages}`;
+    window.scrollTo({ top: 300, behavior: 'smooth' });
 }
 
-function nextPage() {
-    showPage(currentPage + 1);
-}
-
-function previousPage() {
-    showPage(currentPage - 1);
-}
+function nextPage()     { showPage(currentPage + 1); }
+function previousPage() { showPage(currentPage - 1); }
 
 function changeFontSize(delta) {
-    const content = document.getElementById('textContent');
-    if (delta === 0) {
-        fontSize = 16;
-    } else {
-        fontSize += delta;
-        if (fontSize < 12) fontSize = 12;
-        if (fontSize > 24) fontSize = 24;
-    }
-    content.style.fontSize = fontSize + 'px';
+    const el = document.getElementById('textContent');
+    if (delta === 0) { fontSize = 16; }
+    else { fontSize = Math.min(Math.max(fontSize + delta, 12), 26); }
+    el.style.fontSize = fontSize + 'px';
     localStorage.setItem('readingFontSize', fontSize);
 }
 
 function updateReadingTime() {
-    const content = document.getElementById('textContent');
-    const text = content.textContent;
-    const wordsCount = text.split(' ').length;
-    const readingTimeMinutes = Math.ceil(wordsCount / 200);
-    document.getElementById('readingTime').textContent = `${readingTimeMinutes} мин`;
+    const el = document.getElementById('textContent');
+    const mins = Math.ceil(el.textContent.split(' ').length / 200);
+    document.getElementById('readingTime').textContent = `${mins} мин`;
 }
 
-document.addEventListener('keydown', function(e) {
-    switch(e.key) {
-        case 'ArrowLeft':
-            previousPage();
-            e.preventDefault();
-            break;
-        case 'ArrowRight':
-            nextPage();
-            e.preventDefault();
-            break;
-        case '+':
-        case '=':
-            if (e.ctrlKey) {
-                changeFontSize(1);
-                e.preventDefault();
-            }
-            break;
-        case '-':
-            if (e.ctrlKey) {
-                changeFontSize(-1);
-                e.preventDefault();
-            }
-            break;
-        case '0':
-            if (e.ctrlKey) {
-                changeFontSize(0);
-                e.preventDefault();
-            }
-            break;
-    }
+document.addEventListener('keydown', function (e) {
+    if (e.key === 'ArrowLeft')  { previousPage(); e.preventDefault(); }
+    if (e.key === 'ArrowRight') { nextPage();     e.preventDefault(); }
+    if (e.ctrlKey && e.key === '+') { changeFontSize(1);  e.preventDefault(); }
+    if (e.ctrlKey && e.key === '-') { changeFontSize(-1); e.preventDefault(); }
+    if (e.ctrlKey && e.key === '0') { changeFontSize(0);  e.preventDefault(); }
 });
 
-document.addEventListener('DOMContentLoaded', function() {
-    const savedSize = localStorage.getItem('readingFontSize');
-    if (savedSize) {
-        fontSize = parseInt(savedSize);
+document.addEventListener('DOMContentLoaded', function () {
+    const saved = localStorage.getItem('readingFontSize');
+    if (saved) {
+        fontSize = parseInt(saved);
         document.getElementById('textContent').style.fontSize = fontSize + 'px';
     }
-    
     paginateText();
 });
 </script>
+{% endif %}
 
 <style>
-.reading-area {
-    min-height: 600px;
-}
-
-.book-content {
-    font-size: 16px;
-    line-height: 1.8;
-    text-align: justify;
-    font-family: 'Georgia', serif;
-    background: linear-gradient(180deg, #ffffff 0%, #f8f9fa 100%);
-    min-height: 500px;
-}
-
-.sticky-top {
-    position: -webkit-sticky;
-    position: sticky;
-}
-
-.card-header {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-}
-
-.pdf-viewer iframe {
-    border-radius: 0 0 20px 20px;
-}
-
 @media (max-width: 992px) {
-    .sticky-top {
-        position: static;
-        margin-bottom: 20px;
-    }
+    .sticky-top { position: static; margin-bottom: 1rem; }
+    #textContent { padding: 1.5rem !important; }
 }
 </style>
-{% endif %}
 {% endblock %}

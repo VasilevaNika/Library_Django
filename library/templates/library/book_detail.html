@@ -1,103 +1,335 @@
 {% extends 'library/base.html' %}
 
 {% block content %}
-<div class="row">
-    <div class="col-md-4">
-        <div class="card shadow-sm">
+
+<!-- TOP NAV -->
+<div class="mb-4">
+    <a href="/books/" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-arrow-left me-1"></i> Каталог
+    </a>
+</div>
+
+<div class="row g-4">
+
+    <!-- BOOK COVER COLUMN -->
+    <div class="col-md-4 col-lg-3">
+        <div class="card" style="border: none; position: sticky; top: 20px;">
             {% if book.cover %}
-            <img src="{{ book.cover.url }}" class="card-img-top" alt="{{ book.title }}">
+            <img src="{{ book.cover.url }}" class="card-img-top"
+                 alt="{{ book.title }}"
+                 style="height: 380px; object-fit: cover; border-radius: var(--radius-lg) var(--radius-lg) 0 0;">
             {% else %}
-            <div class="card-img-top d-flex align-items-center justify-content-center" style="height: 400px; background: linear-gradient(135deg, #EBF5FB, #D6EAF8);">
-                <span class="text-muted display-1">📖</span>
+            <div style="
+                height: 380px;
+                background: var(--c-dark-2);
+                display: flex; align-items: center; justify-content: center;
+                border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+            ">
+                <i class="bi bi-book" style="font-size: 4rem; color: var(--c-primary);"></i>
             </div>
             {% endif %}
-            <div class="card-body text-center">
-                {% if user.is_authenticated %}
-                <form method="post" action="/toggle_favorite/{{ book.id }}/">
-                    {% csrf_token %}
-                    <button type="submit" 
-                            class="btn {% if is_favorite %}btn-danger{% else %}btn-outline-danger{% endif %} btn-lg">
-                        {% if is_favorite %}♥ В избранном{% else %}♡ Добавить в избранное{% endif %}
-                    </button>
-                </form>
-                {% else %}
-                <a href="/login/" class="btn btn-outline-primary">Войдите, чтобы добавить в избранное</a>
-                {% endif %}
-            </div>
 
-            <div class="card-footer">
-                <a href="/books/" class="btn btn-secondary btn-sm">← Назад к каталогу</a>
-                
-                {% if book.book_file %}
-                <a href="{{ book.book_file.url }}" class="btn btn-success btn-sm" download>📥 Скачать книгу</a>
-                {% else %}
-                <button class="btn btn-outline-secondary btn-sm" disabled>Файл недоступен</button>
+            <div class="card-body d-flex flex-column gap-2">
+
+                <!-- Digital actions -->
+                <div class="d-flex gap-2">
+                    {% if book.book_file %}
+                    <a href="{{ book.book_file.url }}" class="btn btn-dark flex-grow-1" download>
+                        <i class="bi bi-download me-1"></i> Скачать
+                    </a>
+                    {% else %}
+                    <button class="btn btn-outline-secondary flex-grow-1" disabled>
+                        Файл недоступен
+                    </button>
+                    {% endif %}
+
+                    {% if user.is_authenticated %}
+                    <form method="post" action="/toggle_favorite/{{ book.id }}/" style="display: flex;">
+                        {% csrf_token %}
+                        <button type="submit"
+                                class="btn {% if is_favorite %}btn-danger{% else %}btn-outline-danger{% endif %}"
+                                title="{% if is_favorite %}Убрать из избранного{% else %}Добавить в избранное{% endif %}"
+                                style="width: 42px; padding: 0; align-self: stretch; display: flex; align-items: center; justify-content: center;">
+                            <i class="bi {% if is_favorite %}bi-heart-fill{% else %}bi-heart{% endif %}"></i>
+                        </button>
+                    </form>
+                    {% else %}
+                    <a href="/login/" class="btn btn-outline-secondary"
+                       title="Войдите для добавления в избранное"
+                       style="width: 42px; padding: 0; display: flex; align-items: center; justify-content: center;">
+                        <i class="bi bi-heart"></i>
+                    </a>
+                    {% endif %}
+                </div>
+
+                <!-- Physical copy panel -->
+                {% if total_copies > 0 %}
+                <div style="
+                    background: var(--c-dark);
+                    border-radius: var(--radius-md);
+                    padding: 0.9rem 1rem;
+                    margin-top: 0.25rem;
+                ">
+                    <p style="font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--c-text-muted-inv); margin-bottom: 0.5rem;">
+                        <i class="bi bi-building me-1" style="color: var(--c-primary);"></i>
+                        Физическая копия
+                    </p>
+
+                    {% if reading_room_only %}
+                        <p style="font-size: 0.82rem; color: var(--c-text-muted-inv); margin-bottom: 0.6rem;">
+                            <i class="bi bi-eye me-1" style="color: var(--c-primary);"></i>
+                            Только читальный зал
+                        </p>
+                    {% elif available_count > 0 %}
+                        <p style="font-size: 0.82rem; color: #4ade80; margin-bottom: 0.6rem;">
+                            <i class="bi bi-check-circle-fill me-1"></i>
+                            Доступно: {{ available_count }} из {{ total_copies }}
+                        </p>
+                    {% else %}
+                        <p style="font-size: 0.82rem; color: var(--c-text-muted-inv); margin-bottom: 0.6rem;">
+                            <i class="bi bi-clock me-1" style="color: #f59e0b;"></i>
+                            Все выданы
+                            {% if queue_length > 0 %}· очередь: {{ queue_length }}{% endif %}
+                        </p>
+                    {% endif %}
+
+                    {% if user.is_authenticated %}
+                        {% if user_reservation %}
+                            {% if user_reservation.queue_position %}
+                                <div style="font-size: 0.8rem; color: var(--c-text-muted-inv); line-height: 1.5; margin-bottom: 0.6rem;">
+                                    <i class="bi bi-hourglass-split me-1" style="color: #f59e0b;"></i>
+                                    В очереди: позиция <strong style="color: var(--c-text-inv);">{{ user_reservation.queue_position }}</strong>
+                                </div>
+                            {% else %}
+                                <div style="font-size: 0.8rem; color: var(--c-text-muted-inv); line-height: 1.5; margin-bottom: 0.6rem;">
+                                    <i class="bi bi-bookmark-check-fill me-1" style="color: #4ade80;"></i>
+                                    Забронировано до <strong style="color: var(--c-text-inv);">{{ user_reservation.expires_at|date:"d.m" }}</strong>
+                                    {% if user_reservation.book_copy %}
+                                    <br><span style="font-size: 0.75rem;">Экз.: {{ user_reservation.book_copy.inventory_number }}</span>
+                                    {% endif %}
+                                </div>
+                            {% endif %}
+                            <form method="post" action="{% url 'cancel_reservation' user_reservation.id %}">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-outline-secondary btn-sm w-100"
+                                        onclick="return confirm('Отменить бронирование?')"
+                                        style="font-size: 0.78rem;">
+                                    <i class="bi bi-x-circle me-1"></i> Отменить бронь
+                                </button>
+                            </form>
+                        {% elif not reading_room_only %}
+                            <form method="post" action="{% url 'reserve_book' book.pk %}">
+                                {% csrf_token %}
+                                {% if available_count > 0 %}
+                                <button type="submit" class="btn btn-primary btn-sm w-100" style="font-size: 0.82rem;">
+                                    <i class="bi bi-bookmark-plus me-1"></i> Забронировать
+                                </button>
+                                {% else %}
+                                <button type="submit" class="btn btn-outline-secondary btn-sm w-100" style="font-size: 0.82rem;">
+                                    <i class="bi bi-hourglass me-1"></i> Встать в очередь
+                                </button>
+                                {% endif %}
+                            </form>
+                        {% endif %}
+                    {% else %}
+                        {% if not reading_room_only %}
+                        <a href="{% url 'login' %}?next={{ request.path }}"
+                           class="btn btn-outline-secondary btn-sm w-100" style="font-size: 0.78rem;">
+                            <i class="bi bi-box-arrow-in-right me-1"></i> Войдите для брони
+                        </a>
+                        {% endif %}
+                    {% endif %}
+                </div>
                 {% endif %}
+
             </div>
         </div>
     </div>
 
-    <div class="col-md-8">
-        <h1 class="display-5 text-dark">{{ book.title }}</h1>
-        
-        <div class="mb-3">
-            <span class="h5 text-muted">Автор: </span>
-            <span class="h5 text-dark">{{ book.author.name }}</span>
-        </div>
+    <!-- BOOK INFO COLUMN -->
+    <div class="col-md-8 col-lg-9">
 
+        <!-- TITLE & META -->
         <div class="mb-4">
-            {% for genre in book.genres.all %}
-            <span class="badge bg-primary me-1">{{ genre.name }}</span>
-            {% endfor %}
+            <div class="mb-2">
+                {% for genre in book.genres.all %}
+                <span class="badge bg-secondary me-1">{{ genre.name }}</span>
+                {% endfor %}
+            </div>
+            <h1 style="
+                font-size: clamp(1.6rem, 4vw, 2.5rem);
+                font-weight: 900;
+                letter-spacing: -0.04em;
+                line-height: 1.1;
+                color: var(--c-text);
+                margin-bottom: 0.6rem;
+            ">{{ book.title }}</h1>
+            <p style="font-size: 1.05rem; color: var(--c-text-muted); font-weight: 500;">
+                <i class="bi bi-person-fill me-1" style="color: var(--c-primary);"></i>
+                {{ book.author.name }}
+            </p>
         </div>
 
+        <!-- DESCRIPTION -->
         {% if book.description %}
-        <div class="card shadow-sm">
-            <div class="card-header">
-                <h5 class="mb-0 text-dark">Описание</h5>
-            </div>
+        <div class="card mb-4" style="border: none; background: var(--c-light-2);">
             <div class="card-body">
-                <p class="card-text text-dark">{{ book.description|linebreaks }}</p>
+                <h5 style="font-weight: 800; font-size: 1rem; margin-bottom: 0.75rem; color: var(--c-text);">
+                    Описание
+                </h5>
+                <p style="color: var(--c-text); line-height: 1.75; font-size: 0.95rem; margin: 0;">
+                    {{ book.description|linebreaks }}
+                </p>
             </div>
         </div>
         {% endif %}
 
-        {% if user.is_authenticated and review_form %}
-        <div class="card shadow-sm mt-4 border-info" id="review-form">
-            <div class="card-header bg-light">
-                <h5 class="mb-0 text-dark">
-                    <i class="bi bi-chat-square-text"></i> Отзыв о книге
-                </h5>
+        <!-- REVIEWS LIST -->
+        <div>
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h2 class="section-title" style="font-size: 1.2rem; margin-bottom: 0;">
+                    Отзывы читателей
+                    {% if reviews %}
+                    <span style="color: var(--c-text-muted); font-weight: 400; font-size: 0.95rem; letter-spacing: 0;">
+                        ({{ reviews|length }})
+                    </span>
+                    {% endif %}
+                    <span class="section-divider"></span>
+                </h2>
+
+                {% if user.is_authenticated %}
+                <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#reviewModal"
+                        style="flex-shrink: 0;">
+                    <i class="bi bi-pencil-square me-1"></i> Оставить отзыв
+                </button>
+                {% else %}
+                <a href="{% url 'login' %}?next={{ request.path }}"
+                   class="btn btn-outline-secondary btn-sm" style="flex-shrink: 0;">
+                    <i class="bi bi-box-arrow-in-right me-1"></i> Войдите для отзыва
+                </a>
+                {% endif %}
             </div>
-            <div class="card-body">
-                <form method="post" action="{% url 'submit_book_review' book.pk %}">
+
+            {% if reviews %}
+                <div class="d-flex flex-column gap-3">
+                    {% for review in reviews %}
+                    <div class="card" style="border: none; border-left: 3px solid var(--c-light-3);">
+                        <div class="card-body" style="padding: 1.1rem 1.3rem;">
+                            <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
+                                <div class="d-flex align-items-center gap-2">
+                                    <div style="
+                                        width: 32px; height: 32px;
+                                        border-radius: 50%;
+                                        background: var(--c-dark);
+                                        display: flex; align-items: center; justify-content: center;
+                                        flex-shrink: 0;
+                                    ">
+                                        <i class="bi bi-person-fill" style="font-size: 0.85rem; color: var(--c-primary);"></i>
+                                    </div>
+                                    <div>
+                                        <p style="font-weight: 700; font-size: 0.88rem; margin: 0; color: var(--c-text);">
+                                            {{ review.author_name }}
+                                        </p>
+                                        <p style="font-size: 0.75rem; color: var(--c-text-muted); margin: 0;">
+                                            {{ review.created_at|slice:":10" }}
+                                        </p>
+                                    </div>
+                                </div>
+                                <span class="badge bg-secondary" style="flex-shrink: 0;">Отзыв</span>
+                            </div>
+                            <h6 style="font-weight: 700; font-size: 0.92rem; color: var(--c-text); margin-bottom: 0.4rem;">
+                                {{ review.title }}
+                            </h6>
+                            {% if review.content %}
+                            <p style="font-size: 0.88rem; color: var(--c-text-muted); line-height: 1.65; margin: 0;">
+                                {{ review.content }}
+                            </p>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+            {% else %}
+                <div style="
+                    background: var(--c-dark);
+                    border-radius: var(--radius-lg);
+                    padding: 2rem;
+                    text-align: center;
+                ">
+                    <i class="bi bi-chat-square" style="font-size: 2rem; color: var(--c-primary); display: block; margin-bottom: 0.75rem;"></i>
+                    <p style="color: var(--c-text-inv); font-weight: 700; font-size: 0.95rem; margin-bottom: 0.3rem;">
+                        Отзывов пока нет
+                    </p>
+                    <p style="color: var(--c-text-muted-inv); font-size: 0.82rem; margin: 0;">
+                        Будьте первым, кто оставит отзыв об этой книге
+                    </p>
+                </div>
+            {% endif %}
+        </div>
+
+    </div>
+</div>
+
+<!-- REVIEW MODAL -->
+{% if user.is_authenticated and review_form %}
+<div class="modal fade" id="reviewModal" tabindex="-1" aria-labelledby="reviewModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border: none; border-radius: var(--radius-lg); overflow: hidden;">
+
+            <div class="modal-header" style="background: var(--c-dark); border-bottom: none; padding: 1.25rem 1.5rem;">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="bi bi-chat-square-text" style="color: var(--c-primary); font-size: 1.1rem;"></i>
+                    <h5 class="modal-title" id="reviewModalLabel"
+                        style="color: var(--c-text-inv); font-weight: 700; font-size: 1rem; margin: 0;">
+                        Отзыв о книге
+                    </h5>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+            </div>
+
+            <div class="modal-body" style="padding: 1.5rem;">
+                <p style="font-size: 0.82rem; color: var(--c-text-muted); margin-bottom: 1.25rem;">
+                    <i class="bi bi-book me-1" style="color: var(--c-primary);"></i>
+                    {{ book.title }}
+                </p>
+
+                <form method="post" action="{% url 'submit_book_review' book.pk %}" id="reviewForm">
                     {% csrf_token %}
                     <div class="mb-3">
                         <label class="form-label" for="id_title">{{ review_form.title.label }}</label>
                         {{ review_form.title }}
                         {% if review_form.title.errors %}
-                        <div class="text-danger small">{{ review_form.title.errors }}</div>
+                        <div style="color: var(--c-danger); font-size: 0.82rem; margin-top: 0.25rem;">
+                            {{ review_form.title.errors }}
+                        </div>
                         {% endif %}
                     </div>
                     <div class="mb-3">
                         <label class="form-label" for="id_content">{{ review_form.content.label }}</label>
                         {{ review_form.content }}
                     </div>
-                    <div class="mb-3 form-check">
+                    <div class="mb-4 form-check">
                         {{ review_form.is_published }}
-                        <label class="form-check-label" for="id_is_published">{{ review_form.is_published.label }}</label>
+                        <label class="form-check-label" for="id_is_published"
+                               style="font-size: 0.88rem; color: var(--c-text-muted);">
+                            {{ review_form.is_published.label }}
+                        </label>
                     </div>
-                    <button type="submit" class="btn btn-primary">
-                        <i class="bi bi-send"></i> Отправить отзыв
-                    </button>
+
+                    <div class="d-flex gap-2 justify-content-end">
+                        <button type="button" class="btn btn-outline-secondary btn-sm"
+                                data-bs-dismiss="modal">Отмена</button>
+                        <button type="submit" class="btn btn-primary btn-sm">
+                            <i class="bi bi-send me-1"></i> Отправить
+                        </button>
+                    </div>
                 </form>
             </div>
+
         </div>
-        {% elif not user.is_authenticated %}
-        <div class="alert alert-light border mt-4">
-            <a href="{% url 'login' %}?next={{ request.path }}#review-form">Войдите</a>, чтобы оставить отзыв.
-        </div>
-        {% endif %}
     </div>
 </div>
+{% endif %}
+
 {% endblock %}

@@ -1,0 +1,241 @@
+{% extends 'library/base.html' %}
+
+{% block content %}
+
+<div class="mb-4">
+    <a href="{% url 'staff_dashboard' %}" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-arrow-left me-1"></i> Панель сотрудника
+    </a>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-7">
+
+        <div class="mb-4">
+            <p style="color: var(--c-primary); font-weight: 700; font-size: 0.75rem; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 0.4rem;">
+                Сотрудник
+            </p>
+            <h1 class="section-title" style="font-size: 1.5rem; margin-bottom: 0;">
+                Проверка возврата
+                <span class="section-divider"></span>
+            </h1>
+        </div>
+
+        <!-- Reservation info card -->
+        <div class="card mb-4" style="border: none; background: var(--c-dark);">
+            <div class="card-body" style="padding: 1.25rem 1.5rem;">
+                <div class="row g-3" style="font-size: 0.85rem; color: var(--c-text-muted-inv);">
+                    <div class="col-sm-6">
+                        <div style="font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 0.25rem;">Читатель</div>
+                        <div style="color: var(--c-text-inv); font-weight: 600;">
+                            {{ reservation.user.get_full_name|default:reservation.user.username }}
+                        </div>
+                        <div style="font-size: 0.75rem;">@{{ reservation.user.username }}</div>
+                    </div>
+                    <div class="col-sm-6">
+                        <div style="font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 0.25rem;">Книга</div>
+                        <div style="color: var(--c-text-inv); font-weight: 600;">{{ reservation.book.title|truncatechars:50 }}</div>
+                        <div style="font-size: 0.75rem;">{{ reservation.book.author.name }}</div>
+                    </div>
+                    {% if reservation.book_copy %}
+                    <div class="col-sm-4">
+                        <div style="font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 0.25rem;">Экземпляр</div>
+                        <div style="color: var(--c-primary); font-weight: 700; font-family: monospace; font-size: 1rem;">{{ reservation.book_copy.inventory_number }}</div>
+                    </div>
+                    <div class="col-sm-4">
+                        <div style="font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 0.25rem;">Состояние при выдаче</div>
+                        <div style="color: var(--c-text-inv); font-weight: 600;">{{ reservation.book_copy.get_condition_display }}</div>
+                    </div>
+                    {% endif %}
+                    {% if reservation.due_date %}
+                    <div class="col-sm-4">
+                        <div style="font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 0.25rem;">Срок возврата</div>
+                        <div style="color: var(--c-text-inv); font-weight: 600;">{{ reservation.due_date|date:"d.m.Y" }}</div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        {% if reservation.status == 'return_pending' or reservation.status == 'active' %}
+        <form method="post" id="returnForm">
+            {% csrf_token %}
+
+            <!-- Condition -->
+            <div class="card mb-3" style="border: none;">
+                <div class="card-header card-header-light">
+                    <i class="bi bi-book me-2" style="color: var(--c-primary);"></i>
+                    Состояние книги
+                </div>
+                <div class="card-body" style="padding: 1.25rem 1.5rem;">
+                    <div class="d-flex gap-2">
+                        <label class="condition-option flex-grow-1" style="
+                            cursor: pointer; text-align: center;
+                            border: 2px solid var(--c-light-3);
+                            border-radius: var(--radius-md);
+                            padding: 1rem 0.5rem;
+                            font-size: 0.85rem; font-weight: 600;
+                            transition: border-color 0.15s, background 0.15s;
+                        ">
+                            <input type="radio" name="condition" value="good" class="condition-radio" style="display:none;"
+                                   {% if form.condition.value == 'good' or not form.condition.value %}checked{% endif %}>
+                            <i class="bi bi-emoji-smile d-block mb-2" style="font-size: 1.6rem; color: #4ade80;"></i>
+                            Хорошее
+                        </label>
+                        <label class="condition-option flex-grow-1" style="
+                            cursor: pointer; text-align: center;
+                            border: 2px solid var(--c-light-3);
+                            border-radius: var(--radius-md);
+                            padding: 1rem 0.5rem;
+                            font-size: 0.85rem; font-weight: 600;
+                            transition: border-color 0.15s, background 0.15s;
+                        ">
+                            <input type="radio" name="condition" value="fair" class="condition-radio" style="display:none;"
+                                   {% if form.condition.value == 'fair' %}checked{% endif %}>
+                            <i class="bi bi-emoji-neutral d-block mb-2" style="font-size: 1.6rem; color: #f59e0b;"></i>
+                            Удовлетворительное
+                        </label>
+                        <label class="condition-option flex-grow-1" style="
+                            cursor: pointer; text-align: center;
+                            border: 2px solid var(--c-light-3);
+                            border-radius: var(--radius-md);
+                            padding: 1rem 0.5rem;
+                            font-size: 0.85rem; font-weight: 600;
+                            transition: border-color 0.15s, background 0.15s;
+                        ">
+                            <input type="radio" name="condition" value="poor" class="condition-radio" style="display:none;"
+                                   {% if form.condition.value == 'poor' %}checked{% endif %}>
+                            <i class="bi bi-emoji-frown d-block mb-2" style="font-size: 1.6rem; color: #ef4444;"></i>
+                            Плохое / Повреждена
+                        </label>
+                    </div>
+
+                    <div class="mt-3">
+                        <label class="form-label" style="font-size: 0.85rem; font-weight: 600;">{{ form.notes.label }}</label>
+                        {{ form.notes }}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Warning (visible for confirm_with_warning) -->
+            <div class="card mb-3" style="border: none;" id="warningBlock">
+                <div class="card-header" style="background: rgba(245,158,11,0.12); border-bottom: 1px solid rgba(245,158,11,0.3);">
+                    <i class="bi bi-exclamation-triangle me-2" style="color: #f59e0b;"></i>
+                    <span style="font-weight: 700; font-size: 0.85rem; color: var(--c-text);">Текст предупреждения читателю</span>
+                </div>
+                <div class="card-body" style="padding: 1.25rem 1.5rem;">
+                    <p style="font-size: 0.82rem; color: var(--c-text-muted); margin-bottom: 0.75rem;">
+                        Читатель увидит это сообщение в своих бронированиях.
+                    </p>
+                    {{ form.warning }}
+                </div>
+            </div>
+
+            <!-- Reject reason (visible for reject) -->
+            <div class="card mb-4" style="border: none;" id="rejectBlock">
+                <div class="card-header" style="background: rgba(239,68,68,0.1); border-bottom: 1px solid rgba(239,68,68,0.3);">
+                    <i class="bi bi-x-circle me-2" style="color: #ef4444;"></i>
+                    <span style="font-weight: 700; font-size: 0.85rem; color: var(--c-text);">Причина отклонения</span>
+                </div>
+                <div class="card-body" style="padding: 1.25rem 1.5rem;">
+                    <p style="font-size: 0.82rem; color: var(--c-text-muted); margin-bottom: 0.75rem;">
+                        Книга останется в статусе «На руках». Читатель увидит причину отклонения.
+                    </p>
+                    {{ form.reject_reason }}
+                </div>
+            </div>
+
+            <!-- Action buttons -->
+            <div class="card" style="border: none; background: var(--c-light-2);">
+                <div class="card-body" style="padding: 1.25rem 1.5rem;">
+                    <p style="font-size: 0.82rem; font-weight: 700; color: var(--c-text-muted); margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 0.06em;">
+                        Выберите действие
+                    </p>
+                    <div class="d-flex flex-column gap-2">
+
+                        <button type="submit" name="action" value="confirm"
+                                class="btn btn-sm action-btn"
+                                style="background: #4ade80; color: #000; font-weight: 700; text-align: left; padding: 0.75rem 1rem;">
+                            <i class="bi bi-check-circle-fill me-2"></i>
+                            Подтвердить возврат
+                            <span style="font-weight: 400; opacity: 0.75; font-size: 0.78rem; display: block; margin-top: 0.1rem; margin-left: 1.5rem;">
+                                Книга принята, возврат завершён
+                            </span>
+                        </button>
+
+                        <button type="submit" name="action" value="confirm_with_warning"
+                                class="btn btn-sm action-btn"
+                                style="background: #f59e0b; color: #000; font-weight: 700; text-align: left; padding: 0.75rem 1rem;"
+                                id="btnWarn">
+                            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                            Принять с предупреждением
+                            <span style="font-weight: 400; opacity: 0.75; font-size: 0.78rem; display: block; margin-top: 0.1rem; margin-left: 1.5rem;">
+                                Возврат засчитан, но читатель получит уведомление
+                            </span>
+                        </button>
+
+                        <button type="submit" name="action" value="reject"
+                                class="btn btn-sm action-btn"
+                                style="background: rgba(239,68,68,0.12); color: #ef4444; border: 1.5px solid #ef4444; font-weight: 700; text-align: left; padding: 0.75rem 1rem;"
+                                id="btnReject">
+                            <i class="bi bi-x-circle-fill me-2"></i>
+                            Отклонить возврат
+                            <span style="font-weight: 400; opacity: 0.75; font-size: 0.78rem; display: block; margin-top: 0.1rem; margin-left: 1.5rem;">
+                                Книга остаётся «На руках», читатель получит причину
+                            </span>
+                        </button>
+
+                    </div>
+                </div>
+            </div>
+        </form>
+
+        {% else %}
+        <div class="card" style="border: none; background: var(--c-light-2);">
+            <div class="card-body text-center" style="padding: 2rem;">
+                <i class="bi bi-check-circle-fill" style="font-size: 2rem; color: #4ade80; display: block; margin-bottom: 0.75rem;"></i>
+                <p style="font-weight: 700; margin: 0;">Бронирование уже завершено</p>
+            </div>
+        </div>
+        {% endif %}
+
+    </div>
+</div>
+
+<script>
+// Highlight condition options
+function highlightConditions() {
+    document.querySelectorAll('.condition-radio').forEach(radio => {
+        const label = radio.closest('.condition-option');
+        if (radio.checked) {
+            label.style.borderColor = 'var(--c-primary)';
+            label.style.background = 'rgba(232,129,27,0.07)';
+        } else {
+            label.style.borderColor = 'var(--c-light-3)';
+            label.style.background = '';
+        }
+    });
+}
+document.querySelectorAll('.condition-radio').forEach(r => r.addEventListener('change', highlightConditions));
+highlightConditions();
+
+// Show/hide warning and reject blocks based on clicked button
+const warningBlock = document.getElementById('warningBlock');
+const rejectBlock  = document.getElementById('rejectBlock');
+
+function hideExtras() {
+    warningBlock.style.display = 'none';
+    rejectBlock.style.display  = 'none';
+}
+hideExtras();
+
+document.querySelectorAll('.action-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        hideExtras();
+        if (btn.value === 'confirm_with_warning') warningBlock.style.display = '';
+        if (btn.value === 'reject')               rejectBlock.style.display  = '';
+    });
+});
+</script>
+
+{% endblock %}

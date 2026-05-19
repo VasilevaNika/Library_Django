@@ -1,73 +1,125 @@
 {% extends 'library/base.html' %}
 
 {% block content %}
-<div class="row">
-    <div class="col-lg-8">
-        <div class="jumbotron p-5 rounded" style="background: linear-gradient(135deg, #EBF5FB, #D6EAF8);">
-            <h1 class="display-4 text-dark">Добро пожаловать в онлайн-библиотеку!</h1>
-            <p class="lead text-dark">Откройте для себя мир книг. Читайте, сохраняйте, наслаждайтесь.</p>
 
-            <form method="get" action="/books/" class="mb-4">
-                <div class="input-group">
-                    <input type="text" name="q" class="form-control" placeholder="Найти книгу или автора...">
-                    <button class="btn btn-primary" type="submit">
-                        <i class="bi bi-search"></i> Найти
-                    </button>
+<!-- HERO -->
+<div class="hero-section rounded-custom mb-5" style="
+    background: var(--c-dark);
+    padding: 3.5rem 2.5rem;
+    position: relative;
+    overflow: hidden;
+">
+    <div style="
+        position: absolute; top: 0; right: 0; bottom: 0;
+        width: 40%;
+        background: linear-gradient(135deg, rgba(232,129,27,0.08) 0%, rgba(232,129,27,0.02) 100%);
+        clip-path: polygon(20% 0%, 100% 0%, 100% 100%, 0% 100%);
+    "></div>
+
+    <div class="row align-items-center" style="position: relative; z-index: 1;">
+        <div class="col-lg-7">
+            <p style="color: var(--c-primary); font-weight: 700; font-size: 0.8rem; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 1rem;">
+                Онлайн-библиотека
+            </p>
+            <h1 style="
+                color: var(--c-text-inv);
+                font-size: clamp(2rem, 5vw, 3.2rem);
+                font-weight: 900;
+                letter-spacing: -0.04em;
+                line-height: 1.08;
+                margin-bottom: 1.25rem;
+            ">
+                <span style="color: var(--c-primary);">Между строк</span> —<br>
+                здесь живут книги.
+            </h1>
+            <p style="color: var(--c-text-muted-inv); font-size: 1rem; max-width: 480px; margin-bottom: 2rem; line-height: 1.6;">
+                Тысячи книг в одном месте. Классика, фантастика, драма — всё, что важно читать.
+            </p>
+
+            <form method="get" action="/books/" class="d-flex gap-2 flex-wrap">
+                <div class="flex-grow-1" style="min-width: 240px; max-width: 420px;">
+                    <div class="input-group">
+                        <span class="input-group-text" style="background: var(--c-dark-3); border-radius: var(--radius-md) 0 0 var(--radius-md);">
+                            <i class="bi bi-search" style="color: var(--c-primary);"></i>
+                        </span>
+                        <input type="text" name="q" class="form-control hero-search"
+                               placeholder="Название, автор..."
+                               style="background: var(--c-dark-2); border-color: var(--c-dark-3); color: var(--c-text-inv); border-radius: 0 var(--radius-md) var(--radius-md) 0;">
+                    </div>
                 </div>
+                <button class="btn btn-primary" type="submit" style="padding: 0.6rem 1.5rem; white-space: nowrap;">
+                    Найти книгу
+                </button>
             </form>
         </div>
 
-        <div class="last-added mt-5">
-            <h2 class="text-dark mb-4 pb-2 border-bottom border-primary">
-                <i class="bi bi-clock-history"></i> Новинки библиотеки
+        <div class="col-lg-5 d-none d-lg-flex justify-content-end">
+            <div class="d-flex gap-4 mt-3 mt-lg-0">
+                <div class="text-center">
+                    <div class="stat-number">{{ total_books }}</div>
+                    <div class="stat-label" style="color: var(--c-text-muted-inv);">Книг</div>
+                </div>
+                <div style="width: 1px; background: var(--c-dark-3);"></div>
+                <div class="text-center">
+                    <div class="stat-number">{{ genres.count }}</div>
+                    <div class="stat-label" style="color: var(--c-text-muted-inv);">Жанров</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+
+    <!-- MAIN COLUMN -->
+    <div class="col-lg-8">
+
+        <!-- NEW BOOKS -->
+        <div class="mb-5">
+            <h2 class="section-title">
+                Новинки библиотеки
+                <span class="section-divider"></span>
             </h2>
-            <div class="row">
+
+            <div class="row g-3">
                 {% for book in last_three_books %}
-                <div class="col-md-4 mb-4">
-                    <div class="card h-100 shadow-sm">
-                        {% if book.cover %}
-                            <img src="{{ book.cover.url }}" 
-                                 class="card-img-top book-cover" 
-                                 alt="{{ book.title }}"
-                                 style="height: 250px; object-fit: cover; width: 100%;">
-                        {% else %}
-                            <div class="card-img-top book-cover d-flex align-items-center justify-content-center text-center gradient-classic" 
-                                 style="min-height: 250px; padding: 15px; width: 100%;">
-                                <h4 class="text-dark fw-bold">{{ book.title }}</h4>
-                            </div>
-                        {% endif %}
-                        <div class="card-body">
-                            <h5 class="card-title">{{ book.title }}</h5>
-                            <p class="card-text text-muted">
-                                <i class="bi bi-person"></i> {{ book.author.name }}
-                            </p>
+                <div class="col-sm-6 col-md-4">
+                    <div class="card book-card h-100">
+                        <div class="book-cover-wrap">
+                            {% if book.cover %}
+                                <img src="{{ book.cover.url }}" alt="{{ book.title }}">
+                            {% else %}
+                                <div class="book-cover-placeholder">
+                                    <span>{{ book.title }}</span>
+                                </div>
+                            {% endif %}
+
+                            {% if user.is_authenticated %}
+                            <form method="post" action="{% url 'toggle_favorite' book.id %}" class="d-inline">
+                                {% csrf_token %}
+                                <button type="submit" class="book-fav-btn" title="Избранное">
+                                    <i class="bi {% if book.id in favorite_book_ids %}bi-heart-fill{% else %}bi-heart{% endif %}"></i>
+                                </button>
+                            </form>
+                            {% endif %}
+                        </div>
+
+                        <div class="card-body d-flex flex-column" style="padding: 1rem;">
                             <div class="mb-2">
-                                {% for genre in book.genres.all|slice:":3" %}
-                                    <span class="badge 
-                                        {% if genre.name == 'Классика' %}bg-success
-                                        {% elif genre.name == 'Драма' %}bg-danger
-                                        {% elif genre.name == 'Комедия' %}bg-warning text-dark
-                                        {% elif genre.name == 'Сатира' %}bg-info
-                                        {% elif genre.name == 'Фантастика' %}bg-primary
-                                        {% elif genre.name == 'Роман' %}bg-secondary
-                                        {% else %}bg-primary{% endif %} me-1">
-                                        {{ genre.name }}
-                                    </span>
+                                {% for genre in book.genres.all|slice:":2" %}
+                                    <span class="badge bg-secondary me-1">{{ genre.name }}</span>
                                 {% endfor %}
                             </div>
-                            <div class="d-flex justify-content-between align-items-center">
-                                <a href="/books/{{ book.pk }}/" class="btn btn-primary btn-sm">
-                                    <i class="bi bi-info-circle"></i> Подробнее
+                            <h6 style="font-weight: 700; font-size: 0.92rem; margin-bottom: 0.3rem; line-height: 1.3;">
+                                {{ book.title }}
+                            </h6>
+                            <p style="font-size: 0.8rem; color: var(--c-text-muted); margin-bottom: 0.8rem;">
+                                {{ book.author.name }}
+                            </p>
+                            <div class="mt-auto">
+                                <a href="/books/{{ book.pk }}/" class="btn btn-dark btn-sm w-100">
+                                    Подробнее
                                 </a>
-                                {% if user.is_authenticated %}
-                                <form method="post" action="{% url 'toggle_favorite' book.id %}" class="d-inline">
-                                    {% csrf_token %}
-                                    <button type="submit" class="btn btn-link text-decoration-none p-0" 
-                                            title="{% if book in user.favorite_books.all %}Удалить из избранного{% else %}Добавить в избранное{% endif %}">
-                                        <i class="bi {% if book in user.favorite_books.all %}bi-heart-fill text-danger{% else %}bi-heart text-muted{% endif %} fs-5"></i>
-                                    </button>
-                                </form>
-                                {% endif %}
                             </div>
                         </div>
                     </div>
@@ -75,107 +127,81 @@
                 {% empty %}
                 <div class="col-12">
                     <div class="alert alert-info">
-                        <i class="bi bi-info-circle"></i> Книги пока не добавлены в библиотеку.
+                        <i class="bi bi-info-circle"></i> Книги пока не добавлены.
                     </div>
                 </div>
                 {% endfor %}
             </div>
         </div>
 
-        <div class="recommendations mt-5">
-            <h2 class="text-dark mb-4 pb-2 border-bottom border-success">
-                <i class="bi bi-stars"></i> Рекомендации для вас
+        <!-- RECOMMENDATIONS -->
+        <div class="mb-5">
+            <h2 class="section-title">
+                Рекомендации для вас
+                <span class="section-divider"></span>
             </h2>
-            
+
             {% if user.is_authenticated %}
                 {% if user_favorite_genres %}
-                    <div class="user-genres mb-4 p-3 rounded" style="background: #e8f4fc; border-left: 4px solid #3498db;">
-                        <p class="mb-0 text-dark">
-                            <strong><i class="bi bi-tags"></i> На основе ваших предпочтений:</strong> 
+                    <div style="background: var(--c-primary-subtle); border-left: 3px solid var(--c-primary); border-radius: 0 var(--radius-md) var(--radius-md) 0; padding: 0.85rem 1.1rem; margin-bottom: 1.25rem;">
+                        <p style="font-size: 0.85rem; font-weight: 600; color: var(--c-text); margin: 0;">
+                            На основе ваших предпочтений:
                             {% for genre in user_favorite_genres|slice:":5" %}
-                                <span class="badge 
-                                    {% if genre.name == 'Классика' %}bg-success
-                                    {% elif genre.name == 'Драма' %}bg-danger
-                                    {% elif genre.name == 'Комедия' %}bg-warning text-dark
-                                    {% elif genre.name == 'Сатира' %}bg-info
-                                    {% elif genre.name == 'Фантастика' %}bg-primary
-                                    {% elif genre.name == 'Роман' %}bg-secondary
-                                    {% else %}bg-primary{% endif %} me-1 mb-1">
-                                    {{ genre.name }}
-                                </span>
+                                <span class="badge bg-primary ms-1">{{ genre.name }}</span>
                             {% endfor %}
-                            {% if user_favorite_genres|length > 5 %}
-                                <span class="badge bg-secondary">+{{ user_favorite_genres|length|add:"-5" }} еще</span>
-                            {% endif %}
                         </p>
                     </div>
                 {% endif %}
-                
+
                 {% if recommended_books %}
-                    <div class="row">
+                    <div class="row g-3">
                         {% for book in recommended_books|slice:":3" %}
-                        <div class="col-md-4 mb-4">
-                            <div class="card h-100 shadow-sm border-success border-top">
-                                {% if book.cover %}
-                                    <img src="{{ book.cover.url }}" 
-                                         class="card-img-top book-cover" 
-                                         alt="{{ book.title }}"
-                                         style="height: 250px; object-fit: cover; width: 100%;">
-                                {% else %}
-                                    <div class="card-img-top book-cover d-flex align-items-center justify-content-center text-center gradient-fiction" 
-                                         style="min-height: 250px; padding: 15px; width: 100%;">
-                                        <h5 class="text-dark fw-bold">{{ book.title }}</h5>
-                                    </div>
-                                {% endif %}
-                                <div class="card-body">
-                                    <h5 class="card-title">{{ book.title }}</h5>
-                                    <p class="card-text text-muted">
-                                        <i class="bi bi-person"></i> {{ book.author.name }}
-                                    </p>
-                                    <div class="mb-3">
-                                        {% for genre in book.genres.all|slice:":3" %}
-                                            <span class="badge 
-                                                {% if genre.name == 'Классика' %}bg-success
-                                                {% elif genre.name == 'Драма' %}bg-danger
-                                                {% elif genre.name == 'Комедия' %}bg-warning text-dark
-                                                {% elif genre.name == 'Сатира' %}bg-info
-                                                {% elif genre.name == 'Фантастика' %}bg-primary
-                                                {% elif genre.name == 'Роман' %}bg-secondary
-                                                {% else %}bg-primary{% endif %} me-1">
-                                                {{ genre.name }}
-                                            </span>
+                        <div class="col-sm-6 col-md-4">
+                            <div class="card book-card h-100" style="border-top: 3px solid var(--c-primary);">
+                                <div class="book-cover-wrap">
+                                    {% if book.cover %}
+                                        <img src="{{ book.cover.url }}" alt="{{ book.title }}">
+                                    {% else %}
+                                        <div class="book-cover-placeholder">
+                                            <span>{{ book.title }}</span>
+                                        </div>
+                                    {% endif %}
+
+                                    {% if user.is_authenticated %}
+                                    <form method="post" action="{% url 'toggle_favorite' book.id %}" class="d-inline">
+                                        {% csrf_token %}
+                                        <button type="submit" class="book-fav-btn" title="Избранное">
+                                            <i class="bi {% if book.id in favorite_book_ids %}bi-heart-fill{% else %}bi-heart{% endif %}"></i>
+                                        </button>
+                                    </form>
+                                    {% endif %}
+                                </div>
+
+                                <div class="card-body d-flex flex-column" style="padding: 1rem;">
+                                    <div class="mb-2">
+                                        {% for genre in book.genres.all|slice:":2" %}
+                                            <span class="badge bg-secondary me-1">{{ genre.name }}</span>
                                         {% endfor %}
                                     </div>
-                                    
-                                    <p class="rec-reason mb-2" style="color: #27ae60; font-size: 0.9rem;">
-                                        <i class="bi bi-lightbulb"></i>
+                                    <h6 style="font-weight: 700; font-size: 0.92rem; margin-bottom: 0.3rem; line-height: 1.3;">
+                                        {{ book.title }}
+                                    </h6>
+                                    <p style="font-size: 0.8rem; color: var(--c-text-muted); margin-bottom: 0.5rem;">
+                                        {{ book.author.name }}
+                                    </p>
+                                    <p style="font-size: 0.78rem; color: var(--c-primary); font-weight: 600; margin-bottom: 0.8rem;">
+                                        <i class="bi bi-lightning-charge-fill"></i>
                                         {% with fav_books=user.favorite_books.all|slice:":1" %}
                                             {% for fav_book in fav_books %}
-                                                {% if book.author == fav_book.author %}
-                                                    Тот же автор, что и "{{ fav_book.title }}"
-                                                {% else %}
-                                                    Популярная книга среди наших читателей
-                                                {% endif %}
-                                            {% empty %}
-                                                Популярная книга среди наших читателей
+                                                {% if book.author == fav_book.author %}Тот же автор{% else %}Популярно у читателей{% endif %}
+                                            {% empty %}Популярно у читателей
                                             {% endfor %}
                                         {% endwith %}
                                     </p>
-                                    
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <a href="/books/{{ book.pk }}/" class="btn btn-primary btn-sm">
-                                            <i class="bi bi-info-circle"></i> Подробнее
+                                    <div class="mt-auto">
+                                        <a href="/books/{{ book.pk }}/" class="btn btn-primary btn-sm w-100">
+                                            Подробнее
                                         </a>
-                                        
-                                        {% if user.is_authenticated %}
-                                        <form method="post" action="{% url 'toggle_favorite' book.id %}" class="d-inline">
-                                            {% csrf_token %}
-                                            <button type="submit" class="btn btn-link text-decoration-none p-0" 
-                                                    title="{% if book in user.favorite_books.all %}Удалить из избранного{% else %}Добавить в избранное{% endif %}">
-                                                <i class="bi {% if book in user.favorite_books.all %}bi-heart-fill text-danger{% else %}bi-heart text-muted{% endif %} fs-5"></i>
-                                            </button>
-                                        </form>
-                                        {% endif %}
                                     </div>
                                 </div>
                             </div>
@@ -183,119 +209,136 @@
                         {% endfor %}
                     </div>
                 {% else %}
-                    <div class="alert alert-warning">
-                        <h5 class="alert-heading">
-                            <i class="bi bi-exclamation-triangle"></i> Нет рекомендаций
-                        </h5>
-                        <p class="mb-0">Добавьте книги в избранное, чтобы получать персонализированные рекомендации.</p>
-                        <hr>
-                        <a href="/books/" class="btn btn-primary">
-                            <i class="bi bi-book"></i> Посмотреть все книги
-                        </a>
+                    <div style="
+                        background: var(--c-dark);
+                        border-radius: var(--radius-lg);
+                        padding: 2rem;
+                        text-align: center;
+                        color: var(--c-text-inv);
+                    ">
+                        <i class="bi bi-bookmark-star" style="font-size: 2.5rem; color: var(--c-primary); display: block; margin-bottom: 1rem;"></i>
+                        <h5 style="font-weight: 700; margin-bottom: 0.5rem;">Нет рекомендаций</h5>
+                        <p style="color: var(--c-text-muted-inv); font-size: 0.88rem; margin-bottom: 1.25rem;">
+                            Добавьте книги в избранное, чтобы получать персонализированные рекомендации.
+                        </p>
+                        <a href="/books/" class="btn btn-primary btn-sm">Просмотреть каталог</a>
                     </div>
                 {% endif %}
+
             {% else %}
-                <div class="alert alert-info">
-                    <h5 class="alert-heading">
-                        <i class="bi bi-person-circle"></i> Войдите для получения персонализированных рекомендаций
-                    </h5>
-                    <p class="mb-0">Система подберет книги на основе ваших предпочтений и избранного.</p>
-                    <hr>
-                    <a href="{% url 'login' %}" class="btn btn-primary">
-                        <i class="bi bi-box-arrow-in-right"></i> Войти
-                    </a>
-                    <a href="{% url 'register' %}" class="btn btn-outline-primary">
-                        <i class="bi bi-person-plus"></i> Зарегистрироваться
-                    </a>
+                <div style="
+                    background: var(--c-dark);
+                    border-radius: var(--radius-lg);
+                    padding: 2.5rem;
+                    display: flex;
+                    align-items: center;
+                    gap: 2rem;
+                ">
+                    <div style="flex-shrink: 0; color: var(--c-primary); font-size: 3rem;">
+                        <i class="bi bi-person-circle"></i>
+                    </div>
+                    <div>
+                        <h5 style="color: var(--c-text-inv); font-weight: 700; margin-bottom: 0.4rem;">
+                            Войдите для персональных рекомендаций
+                        </h5>
+                        <p style="color: var(--c-text-muted-inv); font-size: 0.88rem; margin-bottom: 1rem;">
+                            Система подберёт книги на основе ваших предпочтений.
+                        </p>
+                        <div class="d-flex gap-2 flex-wrap">
+                            <a href="{% url 'login' %}" class="btn btn-primary btn-sm">Войти</a>
+                            <a href="{% url 'register' %}" class="btn btn-outline-secondary btn-sm" style="color: var(--c-text-muted-inv); border-color: var(--c-dark-3);">Зарегистрироваться</a>
+                        </div>
+                    </div>
                 </div>
             {% endif %}
         </div>
     </div>
-    
-    <div class="col-lg-4">
-        <div class="card shadow-sm">
-            <div class="card-header bg-primary text-white">
-                <h5 class="mb-0">
-                    <i class="bi bi-search"></i> Быстрый поиск по жанрам
-                </h5>
+
+    <!-- SIDEBAR (padding-top выравнивает по карточкам книг, компенсируя высоту section-title) -->
+    <div class="col-lg-4" style="padding-top: 4.2rem;">
+
+        <!-- GENRE FILTER -->
+        <div class="card mb-4" style="border: none; overflow: hidden;">
+            <div class="card-header" style="background: var(--c-dark);">
+                <i class="bi bi-tags me-2" style="color: var(--c-primary);"></i>Жанры
             </div>
-            <div class="card-body">
-                <div class="list-group">
+            <div class="card-body" style="padding: 0;">
+                <div class="list-group list-group-flush">
                     {% for genre in genres %}
-                    <a href="/books/?genre={{ genre.id }}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                    <a href="/books/?genre={{ genre.id }}"
+                       class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
                         {{ genre.name }}
-                        <span class="badge bg-primary rounded-pill">{{ genre.book_set.count }}</span>
+                        <span class="badge bg-secondary">{{ genre.book_set.count }}</span>
                     </a>
                     {% empty %}
-                    <div class="list-group-item text-muted">
-                        <i class="bi bi-info-circle"></i> Жанры не найдены
+                    <div class="list-group-item text-muted" style="font-size: 0.85rem;">
+                        Жанры не найдены
                     </div>
                     {% endfor %}
                 </div>
             </div>
         </div>
 
-        <div class="card mt-4 shadow-sm">
-            <div class="card-body gradient-classic">
-                <h5 class="text-dark">
-                    <i class="bi bi-graph-up"></i> 📊 Статистика
-                </h5>
-                <ul class="list-unstyled">
-                    <li class="mb-2">
-                        📚 <span class="text-dark">Всего книг:</span> 
-                        <strong>{{ total_books }}</strong>
-                    </li>
-                    <li class="mb-2">
-                        🏷️ <span class="text-dark">Жанров:</span> 
-                        <strong>{{ genres.count }}</strong>
-                    </li>
-                    {% if user.is_authenticated %}
-                    <li class="mb-0">
-                        👤 <span class="text-dark">Вы вошли как:</span> 
-                        <strong>{{ user.username }}</strong>
-                    </li>
-                    {% else %}
-                    <li class="mb-0">
-                        ℹ️ <span class="text-dark">
-                            <a href="{% url 'login' %}" class="text-decoration-none">Войдите</a> для доступа к избранному
-                        </span>
-                    </li>
+        <!-- STATS -->
+        <div class="card" style="background: var(--c-dark); border: none;">
+            <div class="card-body" style="padding: 1.5rem;">
+                <p style="color: var(--c-primary); font-weight: 700; font-size: 0.75rem; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 1.25rem;">
+                    Статистика
+                </p>
+                <div class="row g-3">
+                    <div class="col-6">
+                        <div class="stat-number">{{ total_books }}</div>
+                        <div class="stat-label" style="color: var(--c-text-muted-inv);">Книг в базе</div>
+                    </div>
+                    <div class="col-6">
+                        <div class="stat-number">{{ genres.count }}</div>
+                        <div class="stat-label" style="color: var(--c-text-muted-inv);">Жанров</div>
+                    </div>
+                </div>
+
+                {% if user.is_authenticated %}
+                <div style="margin-top: 1.5rem; padding-top: 1.25rem; border-top: 1px solid var(--c-dark-3);">
+                    <p style="color: var(--c-text-muted-inv); font-size: 0.82rem; margin-bottom: 0.25rem;">Вы вошли как</p>
+                    <p style="color: var(--c-text-inv); font-weight: 700; margin-bottom: 0.8rem;">{{ user.username }}</p>
+                    {% if user_favorite_genres %}
+                        <a href="{% url 'favorite_books' %}" class="btn btn-primary btn-sm w-100">
+                            <i class="bi bi-heart-fill me-1"></i> Мои избранные
+                        </a>
                     {% endif %}
-                </ul>
+                </div>
+                {% else %}
+                <div style="margin-top: 1.5rem; padding-top: 1.25rem; border-top: 1px solid var(--c-dark-3);">
+                    <p style="color: var(--c-text-muted-inv); font-size: 0.82rem; margin-bottom: 0.8rem;">
+                        Войдите для доступа к избранному
+                    </p>
+                    <a href="{% url 'login' %}" class="btn btn-primary btn-sm w-100">Войти</a>
+                </div>
+                {% endif %}
             </div>
         </div>
 
         {% if user.is_authenticated and user_favorite_genres %}
-        <div class="card mt-4 shadow-sm border-primary">
-            <div class="card-header bg-primary text-white">
-                <h5 class="mb-0">
-                    <i class="bi bi-star"></i> Ваши предпочтения
-                </h5>
+        <div class="card mt-4" style="border-top: 3px solid var(--c-primary);">
+            <div class="card-header card-header-light">
+                <i class="bi bi-star-fill me-2" style="color: var(--c-primary);"></i>Ваши предпочтения
             </div>
             <div class="card-body">
-                <p class="text-muted mb-2">
-                    <i class="bi bi-heart"></i> На основе ваших избранных книг:
-                </p>
                 <div class="mb-3">
                     {% for genre in user_favorite_genres|slice:":6" %}
-                        <span class="badge 
-                            {% if genre.name == 'Классика' %}bg-success
-                            {% elif genre.name == 'Драма' %}bg-danger
-                            {% elif genre.name == 'Комедия' %}bg-warning text-dark
-                            {% elif genre.name == 'Сатира' %}bg-info
-                            {% elif genre.name == 'Фантастика' %}bg-primary
-                            {% elif genre.name == 'Роман' %}bg-secondary
-                            {% else %}bg-primary{% endif %} me-1 mb-1">
-                            {{ genre.name }}
-                        </span>
+                        <span class="badge bg-secondary me-1 mb-1">{{ genre.name }}</span>
                     {% endfor %}
                 </div>
                 <a href="{% url 'favorite_books' %}" class="btn btn-outline-primary btn-sm">
-                    <i class="bi bi-heart"></i> Мои избранные книги
+                    <i class="bi bi-heart me-1"></i> Избранные книги
                 </a>
             </div>
         </div>
         {% endif %}
     </div>
 </div>
+<style>
+.hero-search::placeholder {
+    color: rgba(255, 255, 255, 0.4);
+}
+</style>
 {% endblock %}

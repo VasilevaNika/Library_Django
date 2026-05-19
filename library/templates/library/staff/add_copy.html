@@ -1,0 +1,156 @@
+{% extends 'library/base.html' %}
+
+{% block content %}
+
+<div class="mb-4 d-flex gap-2">
+    <a href="{% url 'staff_dashboard' %}" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-arrow-left me-1"></i> Панель сотрудника
+    </a>
+    <a href="{% url 'staff_add_book' %}" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-book me-1"></i> Добавить новую книгу
+    </a>
+</div>
+
+<div class="mb-5">
+    <p style="color: var(--c-primary); font-weight: 700; font-size: 0.75rem; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 0.4rem;">
+        Сотрудник
+    </p>
+    <h1 class="section-title" style="margin-bottom: 0;">
+        Добавить экземпляр книги
+        <span class="section-divider"></span>
+    </h1>
+</div>
+
+<div class="row g-4">
+
+    <!-- FORM -->
+    <div class="col-md-5 col-lg-4">
+        <div class="card" style="border: none;">
+            <div class="card-header card-header-light">
+                <i class="bi bi-plus-circle me-2" style="color: var(--c-primary);"></i>
+                Новый экземпляр
+            </div>
+            <div class="card-body" style="padding: 1.5rem;">
+                <form method="post">
+                    {% csrf_token %}
+
+                    <div class="mb-3">
+                        <label class="form-label" style="font-weight: 600; font-size: 0.88rem;">
+                            {{ form.book.label }}
+                        </label>
+                        {{ form.book }}
+                        {% if form.book.errors %}
+                        <div style="color: #ef4444; font-size: 0.78rem; margin-top: 0.25rem;">{{ form.book.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label" style="font-weight: 600; font-size: 0.88rem;">
+                            {{ form.inventory_number.label }}
+                        </label>
+                        {{ form.inventory_number }}
+                        {% if form.inventory_number.errors %}
+                        <div style="color: #ef4444; font-size: 0.78rem; margin-top: 0.25rem;">{{ form.inventory_number.errors }}</div>
+                        {% endif %}
+                        <div style="font-size: 0.75rem; color: var(--c-text-muted); margin-top: 0.3rem;">
+                            Уникальный номер для этого экземпляра
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label" style="font-weight: 600; font-size: 0.88rem;">
+                            {{ form.condition.label }}
+                        </label>
+                        {{ form.condition }}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label" style="font-weight: 600; font-size: 0.88rem;">
+                            {{ form.location.label }}
+                        </label>
+                        {{ form.location }}
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label" style="font-weight: 600; font-size: 0.88rem;">
+                            {{ form.notes.label }}
+                        </label>
+                        {{ form.notes }}
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-plus-circle me-1"></i> Добавить экземпляр
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- RECENT LIST -->
+    <div class="col-md-7 col-lg-8">
+        <h2 class="section-title" style="font-size: 1.1rem;">
+            Последние добавленные
+            <span class="section-divider"></span>
+        </h2>
+
+        {% if recent_copies %}
+        <div class="card" style="border: none;">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0" style="font-size: 0.85rem;">
+                    <thead>
+                        <tr style="border-bottom: 2px solid var(--c-light-3);">
+                            <th style="font-weight: 700; color: var(--c-text-muted); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.06em; padding: 0.75rem 1rem;">Инв. номер</th>
+                            <th style="font-weight: 700; color: var(--c-text-muted); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.06em;">Книга</th>
+                            <th style="font-weight: 700; color: var(--c-text-muted); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.06em;">Статус</th>
+                            <th style="font-weight: 700; color: var(--c-text-muted); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.06em;">Состояние</th>
+                            <th style="font-weight: 700; color: var(--c-text-muted); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.06em;">Расположение</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for copy in recent_copies %}
+                        <tr>
+                            <td style="padding: 0.85rem 1rem; vertical-align: middle;">
+                                <span style="font-family: monospace; font-weight: 600; color: var(--c-primary);">{{ copy.inventory_number }}</span>
+                            </td>
+                            <td style="vertical-align: middle;">
+                                <div style="font-weight: 600;">{{ copy.book.title|truncatechars:35 }}</div>
+                                <div style="font-size: 0.75rem; color: var(--c-text-muted);">{{ copy.book.author.name }}</div>
+                            </td>
+                            <td style="vertical-align: middle;">
+                                {% if copy.status == 'available' %}
+                                    <span class="badge" style="background: #4ade80; color: #000; font-size: 0.7rem;">Доступен</span>
+                                {% elif copy.status == 'reserved' %}
+                                    <span class="badge" style="background: #f59e0b; color: #000; font-size: 0.7rem;">Забронирован</span>
+                                {% elif copy.status == 'checked_out' %}
+                                    <span class="badge" style="background: #3b82f6; font-size: 0.7rem;">Выдан</span>
+                                {% elif copy.status == 'reading_room' %}
+                                    <span class="badge bg-secondary" style="font-size: 0.7rem;">Читальный зал</span>
+                                {% else %}
+                                    <span class="badge bg-secondary" style="font-size: 0.7rem;">{{ copy.get_status_display }}</span>
+                                {% endif %}
+                            </td>
+                            <td style="vertical-align: middle;">
+                                {% if copy.condition == 'good' %}
+                                    <span style="color: #4ade80; font-size: 0.78rem; font-weight: 600;">Хорошее</span>
+                                {% elif copy.condition == 'fair' %}
+                                    <span style="color: #f59e0b; font-size: 0.78rem; font-weight: 600;">Удовл.</span>
+                                {% else %}
+                                    <span style="color: #ef4444; font-size: 0.78rem; font-weight: 600;">Плохое</span>
+                                {% endif %}
+                            </td>
+                            <td style="vertical-align: middle; color: var(--c-text-muted); font-size: 0.78rem;">
+                                {{ copy.location|default:"—" }}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% else %}
+        <p style="color: var(--c-text-muted); font-size: 0.88rem;">Экземпляров пока нет.</p>
+        {% endif %}
+    </div>
+
+</div>
+{% endblock %}

@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Author, Genre, Book, Favorite
+from .models import Author, Genre, Book, Favorite, BookCopy, Reservation
 
 @admin.register(Author)
 class AuthorAdmin(admin.ModelAdmin):
@@ -52,3 +52,41 @@ class FavoriteAdmin(admin.ModelAdmin):
     search_fields = ['user__username', 'book__title']
     list_per_page = 20
     date_hierarchy = 'added_at'
+
+
+class BookCopyInline(admin.TabularInline):
+    model = BookCopy
+    extra = 1
+    fields = ['inventory_number', 'status', 'condition', 'location', 'notes']
+
+
+@admin.register(BookCopy)
+class BookCopyAdmin(admin.ModelAdmin):
+    list_display  = ['inventory_number', 'book', 'status', 'condition', 'location']
+    list_filter   = ['status', 'condition']
+    search_fields = ['inventory_number', 'book__title']
+    list_per_page = 30
+    list_editable = ['status', 'condition']
+    autocomplete_fields = ['book']
+
+
+@admin.register(Reservation)
+class ReservationAdmin(admin.ModelAdmin):
+    list_display  = ['user', 'book', 'book_copy', 'status', 'queue_position', 'reserved_at', 'expires_at', 'due_date']
+    list_filter   = ['status', 'reserved_at']
+    search_fields = ['user__username', 'book__title', 'book_copy__inventory_number']
+    list_per_page = 30
+    readonly_fields = ['reserved_at']
+    list_editable = ['status']
+    date_hierarchy = 'reserved_at'
+    fieldsets = [
+        ('Основное', {
+            'fields': ['user', 'book', 'book_copy', 'status', 'queue_position']
+        }),
+        ('Даты', {
+            'fields': ['reserved_at', 'expires_at', 'due_date', 'returned_at']
+        }),
+        ('Примечания', {
+            'fields': ['notes']
+        }),
+    ]
