@@ -44,7 +44,7 @@ services:
 
   recommendations:
     image: git.klsh.ru/team4/recommendations:latest
-    command: sh -c "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000"
+    command: sh -c "alembic upgrade head || true && uvicorn app.main:app --host 0.0.0.0 --port 8000"
     environment:
       DATABASE_URL: postgresql://library:library@postgres:5432/library
     depends_on:
@@ -58,7 +58,7 @@ services:
 
   reviews:
     image: git.klsh.ru/team4/reviews:latest
-    command: sh -c "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000"
+    command: sh -c "alembic upgrade head || true && uvicorn app.main:app --host 0.0.0.0 --port 8000"
     environment:
       DATABASE_URL: postgresql://library:library@postgres:5432/library
       NOTIFICATIONS_SERVICE_URL: http://notifications:8000
@@ -73,7 +73,7 @@ services:
 
   notifications:
     image: git.klsh.ru/team4/notifications:latest
-    command: sh -c "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000"
+    command: sh -c "alembic upgrade head || true && uvicorn app.main:app --host 0.0.0.0 --port 8000"
     environment:
       DATABASE_URL: postgresql://library:library@postgres:5432/library
     depends_on:
