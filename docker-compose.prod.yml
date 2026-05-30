@@ -16,7 +16,7 @@ services:
       - backend
     restart: unless-stopped
 
-  app:
+  monolith:
     image: git.klsh.ru/team4/library:latest
     ports:
       - "8004:8000"
@@ -26,6 +26,43 @@ services:
       DJANGO_SUPERUSER_USERNAME: admin
       DJANGO_SUPERUSER_PASSWORD: admin123
       DJANGO_SUPERUSER_EMAIL: admin@library.ru
+      RECOMMENDATIONS_SERVICE_URL: http://recommendations:8000
+      REVIEWS_SERVICE_URL: http://reviews:8000
+      NOTIFICATIONS_SERVICE_URL: http://notifications:8000
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - backend
+    restart: unless-stopped
+
+  recommendations:
+    image: git.klsh.ru/team4/recommendations:latest
+    environment:
+      DATABASE_URL: postgresql://library:library@postgres:5432/library
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - backend
+    restart: unless-stopped
+
+  reviews:
+    image: git.klsh.ru/team4/reviews:latest
+    environment:
+      DATABASE_URL: postgresql://library:library@postgres:5432/library
+      NOTIFICATIONS_SERVICE_URL: http://notifications:8000
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - backend
+    restart: unless-stopped
+
+  notifications:
+    image: git.klsh.ru/team4/notifications:latest
+    environment:
+      DATABASE_URL: postgresql://library:library@postgres:5432/library
     depends_on:
       postgres:
         condition: service_healthy

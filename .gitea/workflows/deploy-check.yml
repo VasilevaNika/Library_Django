@@ -17,33 +17,61 @@ jobs:
           echo "${{ secrets.RUNNER_TOKEN }}" | docker login git.klsh.ru \
             -u team4 --password-stdin
 
-      - name: Pull latest image
-        run: docker pull git.klsh.ru/team4/library:latest
+      - name: Pull latest images
+        run: |
+          docker pull git.klsh.ru/team4/library:latest
+          docker pull git.klsh.ru/team4/recommendations:latest
+          docker pull git.klsh.ru/team4/reviews:latest
+          docker pull git.klsh.ru/team4/notifications:latest
 
       - name: Stop existing containers (if any)
         run: |
           docker compose -f docker-compose.prod.yml down --remove-orphans || true
-          docker ps -q --filter "publish=8004" | xargs -r docker rm -f || true
 
       - name: Start services
         run: docker compose -f docker-compose.prod.yml up -d
 
-      - name: Wait for Django to start
+      - name: Wait for all services to start
         run: |
-          echo "Waiting for Django..."
-          for i in $(seq 1 24); do
-            if docker compose -f docker-compose.prod.yml exec -T app \
-                python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/', timeout=3)" \
-                > /dev/null 2>&1; then
-              echo "Django responded on attempt $i"
-              exit 0
+          echo "Waiting for services..."
+          for i in $(seq 1 30); do
+            if docker compose -f docker-compose.prod.yml ps --format json | grep -q '"Status":".*Up.*"; then
+              echo "Services are up on attempt $i"
+              break
             fi
-            echo "Attempt $i/24 — not ready yet, waiting 5s..."
+            echo "Attempt $i/30 — waiting..."
             sleep 5
           done
-          echo "Django did not respond after 2 minutes!"
-          docker compose -f docker-compose.prod.yml logs
-          exit 1
+          
+          echo "=== Container status ==="
+          docker compose -f docker-compose.prod.yml ps
+          
+          echo "=== Monolith logs ==="
+          docker compose -f docker-compose.prod.yml logs monolith --tail=20
 
-      - name: Django responded successfully
-        run: echo "Django responded successfully!"
+      - name: Verify Django health
+        run: |
+          if docker compose -f docker-compose.prod.yml exec -T monolith \
+              python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/', timeout=5)" \
+              > /dev/null 2>&1; then
+            echo "✅ Django responded successfully!"
+          else
+            echo "❌ Django did not respond!"
+            docker compose -f docker-compose.prod.yml logs monolith
+            exit 1
+          fi
+
+      - name: Verify all services running
+        run: |
+          SERVICES="recommendations reviews notifications"
+          for service in $SERVICES; do
+            if docker compose -f docker-compose.prod.yml ps --format json | grep -q "\"Service\":\"$service\".*\"Status\":\".*Up.*\""; then
+              echo "✅ $service is running"
+            else
+              echo "❌ $service is not running!"
+              docker compose -f docker-compose.prod.yml logs $service --tail=30
+              exit 1
+            fi
+          done
+          
+          echo "🎉 All services deployed successfully!"

@@ -1,0 +1,14 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  # Микросервис рекомендаций (порт 8001 на хосте, 8000 внутри Docker)
+  - job_name: 'recommendations-service'
+    static_configs:
+      - targets: ['recommendations-service:8000']
+
+  # Микросервис уведомлений (порт 8003 на хосте, 8000 внутри Docker)
+  - job_name: 'notifications-service'
+    static_configs:
+      - targets: ['notifications-service:8000']

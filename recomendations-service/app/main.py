@@ -3,17 +3,59 @@
 """
 
 import json
+import logging
 import random
+import time
 from datetime import datetime, timezone
 from pathlib import Path as FilePath
 from typing import List, Optional
 
 import httpx
-from fastapi import BackgroundTasks, Depends, FastAPI, HTTPException, Path, Query
+from fastapi import BackgroundTasks, Depends, FastAPI, HTTPException, Path, Query, Request, Response
+from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 from sqlalchemy.orm import Session
+from starlette.middleware.base import BaseHTTPMiddleware
 
 from app import models, schemas
 from app.database import get_db
+from app.metrics import REQUEST_COUNT, REQUEST_LATENCY
+
+# ---------------------------------------------------------------------------
+# Структурированное логирование (JSON)
+# ---------------------------------------------------------------------------
+
+_LOG_RESERVED = {
+    'args', 'created', 'exc_info', 'exc_text', 'filename', 'funcName',
+    'levelname', 'levelno', 'lineno', 'message', 'module', 'msecs', 'msg',
+    'name', 'pathname', 'process', 'processName', 'relativeCreated',
+    'stack_info', 'thread', 'threadName', 'taskName',
+}
+
+
+class JSONFormatter(logging.Formatter):
+    def format(self, record: logging.LogRecord) -> str:
+        log_entry = {
+            "timestamp": datetime.utcnow().isoformat(),
+            "level": record.levelname,
+            "logger": record.name,
+            "message": record.getMessage(),
+        }
+        for key, value in record.__dict__.items():
+            if key not in _LOG_RESERVED and not key.startswith('_'):
+                log_entry[key] = value
+        return json.dumps(log_entry, ensure_ascii=False, default=str)
+
+
+_handler = logging.StreamHandler()
+_handler.setFormatter(JSONFormatter())
+logging.root.handlers = [_handler]
+logging.root.setLevel(logging.INFO)
+
+logger = logging.getLogger("recommendations-service")
+
+# ---------------------------------------------------------------------------
+# FastAPI app
+# ---------------------------------------------------------------------------
 
 app = FastAPI(
     title="Микросервис рекомендаций библиотеки",
@@ -21,6 +63,64 @@ app = FastAPI(
     version="3.0.0",
 )
 
+
+# ---------------------------------------------------------------------------
+# Middleware: сбор метрик Prometheus
+# ---------------------------------------------------------------------------
+
+class MetricsMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        start = time.time()
+        response = await call_next(request)
+        duration = time.time() - start
+
+        REQUEST_COUNT.labels(
+            method=request.method,
+            endpoint=request.url.path,
+            status=str(response.status_code),
+        ).inc()
+        REQUEST_LATENCY.labels(
+            method=request.method,
+            endpoint=request.url.path,
+        ).observe(duration)
+
+        return response
+
+
+app.add_middleware(MetricsMiddleware)
+
+
+# ---------------------------------------------------------------------------
+# Эндпоинт для Prometheus
+# ---------------------------------------------------------------------------
+
+@app.get("/metrics", include_in_schema=False)
+async def get_metrics():
+    return Response(content=generate_latest(), media_type=CONTENT_TYPE_LATEST)
+
+
+# ---------------------------------------------------------------------------
+# Тестовые эндпоинты для проверки observability
+# ---------------------------------------------------------------------------
+
+@app.get("/test/error", tags=["test"])
+async def test_error():
+    """Тестовый эндпоинт — всегда возвращает 500 (для проверки error rate)."""
+    logger.error("test_error endpoint called", extra={"test": True})
+    raise HTTPException(status_code=500, detail="Тестовая ошибка")
+
+
+@app.get("/test/slow", tags=["test"])
+def test_slow():
+    """Тестовый эндпоинт — отвечает 2 секунды (для проверки latency)."""
+    logger.info("test_slow endpoint called — sleeping 2s", extra={"test": True})
+    time.sleep(2)
+    return {"status": "ok", "message": "Медленный ответ после 2 секунд"}
+
+
+# ---------------------------------------------------------------------------
+# Вспомогательные функции
+# ---------------------------------------------------------------------------
 
 def _log_user_action(action: str, user_id: int, payload: dict) -> None:
     logs_dir = FilePath("logs")
@@ -34,6 +134,7 @@ def _log_user_action(action: str, user_id: int, payload: dict) -> None:
     }
     with log_file.open("a", encoding="utf-8") as f:
         f.write(json.dumps(entry, ensure_ascii=False) + "\n")
+    logger.info(action, extra={"user_id": user_id, "payload": payload})
 
 
 def _book_to_rec(book: models.Book) -> schemas.BookRecommendation:
@@ -69,9 +170,14 @@ def _get_book_or_404(db: Session, book_id: int) -> models.Book:
     return book
 
 
+# ---------------------------------------------------------------------------
+# Эндпоинты API
+# ---------------------------------------------------------------------------
+
 @app.get("/")
 def root():
     """Корневой эндпоинт для проверки работоспособности"""
+    logger.info("health check")
     return {
         "message": "Микросервис рекомендаций библиотеки",
         "status": "работает",
@@ -90,6 +196,7 @@ def get_popular_books(
     limit: int = Query(10, ge=1, le=50, description="Количество книг"),
     db: Session = Depends(get_db),
 ):
+    logger.info("get_popular_books", extra={"limit": limit})
     q = (
         db.query(models.Book)
         .order_by(models.Book.rating.desc().nulls_last(), models.Book.id)
@@ -108,7 +215,7 @@ def get_new_books(
     limit: int = Query(10, ge=1, description="Количество книг"),
     db: Session = Depends(get_db),
 ):
-    # Сначала книги с датой (из монолита), новее выше; без даты (старые сиды) — в конец, там же id.
+    logger.info("get_new_books", extra={"limit": limit})
     q = (
         db.query(models.Book)
         .order_by(
@@ -132,6 +239,7 @@ def get_popular_books_by_genre(
     min_rating: float = Query(4.0, ge=0, le=5, description="Минимальный рейтинг"),
     db: Session = Depends(get_db),
 ):
+    logger.info("get_popular_books_by_genre", extra={"genre_id": genreId, "limit": limit})
     if genreId > 5:
         raise HTTPException(status_code=404, detail="Жанр с указанным ID не существует")
     q = (
@@ -158,6 +266,7 @@ def get_popular_books_by_author(
     limit: int = Query(5, ge=1, description="Количество книг"),
     db: Session = Depends(get_db),
 ):
+    logger.info("get_popular_books_by_author", extra={"author_id": authorId, "limit": limit})
     if authorId > 10:
         raise HTTPException(status_code=404, detail="Автор с указанным ID не найден")
     q = (
@@ -183,6 +292,7 @@ def get_similar_books(
     limit: int = Query(5, ge=1, description="Количество книг"),
     db: Session = Depends(get_db),
 ):
+    logger.info("get_similar_books", extra={"book_id": bookId, "limit": limit})
     base = db.get(models.Book, bookId)
     if not base:
         raise HTTPException(status_code=404, detail="Книга с указанным ID не существует")
@@ -205,6 +315,7 @@ def get_random_book(
     genre_id: Optional[int] = Query(None, description="Ограничить жанром"),
     db: Session = Depends(get_db),
 ):
+    logger.info("get_random_book", extra={"genre_id": genre_id})
     q = db.query(models.Book)
     if genre_id is not None:
         q = q.filter(models.Book.genre_id == genre_id)
@@ -249,6 +360,7 @@ def get_random_book(
 async def get_reading_quote():
     quote_id = random.randint(1, 100)
     url = f"https://jsonplaceholder.typicode.com/posts/{quote_id}"
+    logger.info("get_reading_quote", extra={"quote_id": quote_id})
     try:
         async with httpx.AsyncClient(timeout=10.0) as client:
             response = await client.get(url)
@@ -262,6 +374,7 @@ async def get_reading_quote():
             "title": data["title"],
         }
     except httpx.HTTPError:
+        logger.error("external_api_error", extra={"url": url})
         raise HTTPException(
             status_code=502,
             detail="Не удалось получить цитату из внешнего API",
@@ -279,6 +392,7 @@ def get_ignore_list(
     include_book_details: bool = Query(True, description="Включить полную информацию о книгах"),
     db: Session = Depends(get_db),
 ):
+    logger.info("get_ignore_list", extra={"user_id": userId})
     _get_user_or_404(db, userId)
     rows = (
         db.query(models.IgnoredBook)
@@ -376,6 +490,7 @@ def get_reading_list(
     include_book_details: bool = Query(True, description="Включить полную информацию о книгах"),
     db: Session = Depends(get_db),
 ):
+    logger.info("get_reading_list", extra={"user_id": userId})
     _get_user_or_404(db, userId)
     rows = (
         db.query(models.ReadingListEntry)

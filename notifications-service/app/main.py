@@ -1,22 +1,61 @@
 """
 Микросервис уведомлений онлайн-библиотеки (FastAPI + PostgreSQL).
-Эндпоинты перенесены из docker-practice/main.py.
 """
 
+import json
+import logging
+import time
 from datetime import date, datetime, timezone
 from typing import List, Optional
 
-import logging
-
 import httpx
-from fastapi import BackgroundTasks, Depends, FastAPI, HTTPException, Query, Response
+from fastapi import BackgroundTasks, Depends, FastAPI, HTTPException, Query, Request, Response
 from fastapi.responses import JSONResponse
+from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 from sqlalchemy.orm import Session
+from starlette.middleware.base import BaseHTTPMiddleware
 
 from app import models, schemas
 from app.database import get_db
+from app.metrics import REQUEST_COUNT, REQUEST_LATENCY
 
-# В демо-версии список и «прочитать все» привязаны к этому пользователю
+# ---------------------------------------------------------------------------
+# Структурированное логирование (JSON)
+# ---------------------------------------------------------------------------
+
+_LOG_RESERVED = {
+    'args', 'created', 'exc_info', 'exc_text', 'filename', 'funcName',
+    'levelname', 'levelno', 'lineno', 'message', 'module', 'msecs', 'msg',
+    'name', 'pathname', 'process', 'processName', 'relativeCreated',
+    'stack_info', 'thread', 'threadName', 'taskName',
+}
+
+
+class JSONFormatter(logging.Formatter):
+    def format(self, record: logging.LogRecord) -> str:
+        log_entry = {
+            "timestamp": datetime.utcnow().isoformat(),
+            "level": record.levelname,
+            "logger": record.name,
+            "message": record.getMessage(),
+        }
+        for key, value in record.__dict__.items():
+            if key not in _LOG_RESERVED and not key.startswith('_'):
+                log_entry[key] = value
+        return json.dumps(log_entry, ensure_ascii=False, default=str)
+
+
+_handler = logging.StreamHandler()
+_handler.setFormatter(JSONFormatter())
+logging.root.handlers = [_handler]
+logging.root.setLevel(logging.INFO)
+
+logger = logging.getLogger("notifications-service")
+
+# ---------------------------------------------------------------------------
+# FastAPI app
+# ---------------------------------------------------------------------------
+
 DEMO_USER_ID = 789
 
 app = FastAPI(
@@ -25,10 +64,64 @@ app = FastAPI(
     version="1.0.0",
 )
 
-logger = logging.getLogger("notifications-service")
 
-logging.basicConfig(level=logging.INFO)
+# ---------------------------------------------------------------------------
+# Middleware: сбор метрик Prometheus
+# ---------------------------------------------------------------------------
 
+class MetricsMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        start = time.time()
+        response = await call_next(request)
+        duration = time.time() - start
+
+        REQUEST_COUNT.labels(
+            method=request.method,
+            endpoint=request.url.path,
+            status=str(response.status_code),
+        ).inc()
+        REQUEST_LATENCY.labels(
+            method=request.method,
+            endpoint=request.url.path,
+        ).observe(duration)
+
+        return response
+
+
+app.add_middleware(MetricsMiddleware)
+
+
+# ---------------------------------------------------------------------------
+# Эндпоинт для Prometheus
+# ---------------------------------------------------------------------------
+
+@app.get("/metrics", include_in_schema=False)
+async def get_metrics():
+    return Response(content=generate_latest(), media_type=CONTENT_TYPE_LATEST)
+
+
+# ---------------------------------------------------------------------------
+# Тестовые эндпоинты для проверки observability
+# ---------------------------------------------------------------------------
+
+@app.get("/test/error", tags=["test"])
+async def test_error():
+    """Тестовый эндпоинт — всегда возвращает 500 (для проверки error rate)."""
+    logger.error("test_error endpoint called", extra={"test": True})
+    raise HTTPException(status_code=500, detail="Тестовая ошибка")
+
+
+@app.get("/test/slow", tags=["test"])
+def test_slow():
+    """Тестовый эндпоинт — отвечает 2 секунды (для проверки latency)."""
+    logger.info("test_slow endpoint called — sleeping 2s", extra={"test": True})
+    time.sleep(2)
+    return {"status": "ok", "message": "Медленный ответ после 2 секунд"}
+
+
+# ---------------------------------------------------------------------------
+# Вспомогательные функции
+# ---------------------------------------------------------------------------
 
 def log_notification_created(
     *,
@@ -37,18 +130,18 @@ def log_notification_created(
     notification_type: str,
     channel: str,
 ):
-    # BackgroundTasks выполняет функцию после ответа клиенту.
     logger.info(
-        "user_action=create_notification user_id=%s notification_id=%s type=%s channel=%s",
-        user_id,
-        notification_id,
-        notification_type,
-        channel,
+        "notification_created",
+        extra={
+            "user_id": user_id,
+            "notification_id": notification_id,
+            "notification_type": notification_type,
+            "channel": channel,
+        },
     )
 
 
 def _notification_to_response(n: models.Notification) -> schemas.NotificationResponse:
-    """ORM → Pydantic (в т.ч. JSON related_data)."""
     payload = {
         "id": n.id,
         "user_id": n.user_id,
@@ -83,6 +176,10 @@ def _filter_notifications(
     return q.all()
 
 
+# ---------------------------------------------------------------------------
+# Обработчик ошибок
+# ---------------------------------------------------------------------------
+
 @app.exception_handler(HTTPException)
 async def http_exception_handler(request, exc: HTTPException):
     if exc.status_code == 404:
@@ -107,8 +204,13 @@ async def http_exception_handler(request, exc: HTTPException):
     )
 
 
+# ---------------------------------------------------------------------------
+# Эндпоинты API
+# ---------------------------------------------------------------------------
+
 @app.get("/")
 def root():
+    logger.info("health check")
     return {
         "message": "API уведомлений онлайн-библиотеки V2",
         "status": "running with PostgreSQL",
@@ -117,13 +219,13 @@ def root():
     }
 
 
-# Важно: /statistics до /{notification_id}, иначе «statistics» уйдёт в int-параметр
 @app.get("/notifications/statistics", response_model=schemas.StatisticsResponse)
 def get_statistics(
     db: Session = Depends(get_db),
     from_date: Optional[date] = Query(None, description="Начало периода (YYYY-MM-DD)"),
     to_date: Optional[date] = Query(None, description="Конец периода (YYYY-MM-DD)"),
 ):
+    logger.info("get_statistics", extra={"from_date": str(from_date), "to_date": str(to_date)})
     if not to_date:
         to_date = date.today()
     if not from_date:
@@ -192,7 +294,7 @@ def get_notifications(
     limit: int = Query(20, ge=1, le=100, description="Количество на странице"),
     offset: int = Query(0, ge=0, description="Смещение"),
 ):
-    """Список уведомлений. По умолчанию — все пользователи (раньше было только user_id=789)."""
+    logger.info("get_notifications", extra={"user_id": user_id, "status": str(status), "limit": limit})
     user_notifications = _filter_notifications(
         db,
         user_id=user_id,
@@ -215,6 +317,7 @@ def get_notifications(
 
 @app.post("/notifications/read-all", response_model=schemas.MarkAllReadResponse)
 def mark_all_as_read(db: Session = Depends(get_db)):
+    logger.info("mark_all_as_read", extra={"user_id": DEMO_USER_ID})
     now = datetime.now(timezone.utc)
     rows = (
         db.query(models.Notification)
@@ -247,6 +350,15 @@ def create_notification(
     db.add(db_n)
     db.commit()
     db.refresh(db_n)
+    logger.info(
+        "notification_created",
+        extra={
+            "notification_id": db_n.id,
+            "user_id": db_n.user_id,
+            "notification_type": str(db_n.type),
+            "channel": str(db_n.channel),
+        },
+    )
     background_tasks.add_task(
         log_notification_created,
         user_id=db_n.user_id,
@@ -274,10 +386,10 @@ async def create_notification_from_external(
     ),
     db: Session = Depends(get_db),
 ):
-    """
-    Создает уведомление на основе публичного API (по умолчанию JSONPlaceholder) по `GET` запросу.
-    """
-
+    logger.info(
+        "create_notification_from_external",
+        extra={"user_id": user_id, "external_post_id": external_post_id},
+    )
     url = f"https://jsonplaceholder.typicode.com/posts/{external_post_id}"
 
     try:
@@ -286,6 +398,7 @@ async def create_notification_from_external(
         resp.raise_for_status()
         external_data = resp.json()
     except httpx.HTTPStatusError as e:
+        logger.error("external_api_error", extra={"url": url, "status": e.response.status_code})
         raise HTTPException(
             status_code=502,
             detail={
@@ -295,6 +408,7 @@ async def create_notification_from_external(
             },
         )
     except (httpx.RequestError, ValueError):
+        logger.error("external_api_request_error", extra={"url": url})
         raise HTTPException(
             status_code=502,
             detail={"error": "Ошибка запроса к внешнему API", "code": 502},
@@ -309,7 +423,6 @@ async def create_notification_from_external(
     title = external_data.get("title") or "External item"
     message = external_data.get("body") or ""
     if not message:
-        # Часто 502 у вас возникал именно из-за пустого body (JSONPlaceholder может отдавать пустой объект).
         raise HTTPException(
             status_code=404,
             detail={"error": "Внешний элемент не содержит body", "code": 404, "external_post_id": external_post_id},
@@ -333,6 +446,7 @@ async def create_notification_from_external(
 
 @app.get("/notifications/{notification_id}", response_model=schemas.NotificationResponse)
 def get_notification(notification_id: int, db: Session = Depends(get_db)):
+    logger.info("get_notification", extra={"notification_id": notification_id})
     n = db.get(models.Notification, notification_id)
     if not n:
         raise HTTPException(
@@ -344,6 +458,7 @@ def get_notification(notification_id: int, db: Session = Depends(get_db)):
 
 @app.patch("/notifications/{notification_id}/read", response_model=schemas.NotificationResponse)
 def mark_notification_as_read(notification_id: int, db: Session = Depends(get_db)):
+    logger.info("mark_notification_as_read", extra={"notification_id": notification_id})
     n = db.get(models.Notification, notification_id)
     if not n:
         raise HTTPException(
@@ -360,6 +475,7 @@ def mark_notification_as_read(notification_id: int, db: Session = Depends(get_db
 
 @app.delete("/notifications/{notification_id}", status_code=204)
 def delete_notification(notification_id: int, db: Session = Depends(get_db)):
+    logger.info("delete_notification", extra={"notification_id": notification_id})
     n = db.get(models.Notification, notification_id)
     if not n:
         raise HTTPException(
