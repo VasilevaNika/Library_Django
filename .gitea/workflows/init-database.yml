@@ -1,0 +1,102 @@
+name: Initialize Database
+
+on:
+  workflow_dispatch:
+
+jobs:
+  init-db:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Login to Registry
+        run: |
+          echo "${{ secrets.RUNNER_TOKEN }}" | docker login git.klsh.ru \
+            -u team4 --password-stdin
+
+      - name: Start services
+        run: docker compose -f docker-compose.prod.yml up -d
+
+      - name: Wait for monolith to be ready
+        run: |
+          echo "Waiting for monolith to be ready..."
+          for i in $(seq 1 30); do
+            if docker compose -f docker-compose.prod.yml exec -T monolith python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/', timeout=3)" 2>/dev/null; then
+              echo "Monolith is ready!"
+              break
+            fi
+            echo "Attempt $i/30 - waiting..."
+            sleep 5
+          done
+
+      - name: Create books table for microservices
+        run: |
+          echo "Creating books table for microservices..."
+          docker compose -f docker-compose.prod.yml exec -T postgres psql -U library -d library <<EOF
+          CREATE TABLE IF NOT EXISTS books (
+              id SERIAL PRIMARY KEY,
+              title VARCHAR NOT NULL,
+              author VARCHAR NOT NULL,
+              author_id INTEGER,
+              genre_id INTEGER,
+              genre_name VARCHAR,
+              year INTEGER,
+              cover VARCHAR,
+              rating FLOAT,
+              rating_count INTEGER,
+              created_at TIMESTAMP WITH TIME ZONE
+          );
+          
+          INSERT INTO books (id, title, author, author_id, genre_id, genre_name, year, rating, rating_count, created_at)
+          SELECT 
+              id, 
+              title, 
+              author.name as author, 
+              author.id as author_id,
+              NULL as genre_id,
+              NULL as genre_name,
+              NULL as year,
+              NULL as rating,
+              NULL as rating_count,
+              created_at
+          FROM library_book
+          LEFT JOIN library_author as author ON library_book.author_id = author.id
+          ON CONFLICT (id) DO NOTHING;
+          
+          SELECT setval('books_id_seq', (SELECT COALESCE(MAX(id), 1) FROM books));
+          EOF
+
+      - name: Create library_users table
+        run: |
+          echo "Creating library_users table..."
+          docker compose -f docker-compose.prod.yml exec -T postgres psql -U library -d library <<EOF
+          CREATE TABLE IF NOT EXISTS library_users (
+              id INTEGER PRIMARY KEY
+          );
+          
+          INSERT INTO library_users (id)
+          SELECT id FROM auth_user
+          ON CONFLICT (id) DO NOTHING;
+          EOF
+
+      - name: Verify tables created
+        run: |
+          echo "=== Tables in database ==="
+          docker compose -f docker-compose.prod.yml exec -T postgres psql -U library -d library -c "\dt"
+
+      - name: Restart microservices to apply migrations
+        run: |
+          docker compose -f docker-compose.prod.yml restart recommendations reviews notifications
+          sleep 10
+
+      - name: Check microservices health
+        run: |
+          echo "Checking recommendations..."
+          docker compose -f docker-compose.prod.yml exec -T recommendations python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/', timeout=5)" 2>/dev/null && echo "✅ recommendations OK" || echo "❌ recommendations FAILED"
+          
+          echo "Checking reviews..."
+          docker compose -f docker-compose.prod.yml exec -T reviews python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/', timeout=5)" 2>/dev/null && echo "✅ reviews OK" || echo "❌ reviews FAILED"
+          
+          echo "Checking notifications..."
+          docker compose -f docker-compose.prod.yml exec -T notifications python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/', timeout=5)" 2>/dev/null && echo "✅ notifications OK" || echo "❌ notifications FAILED"

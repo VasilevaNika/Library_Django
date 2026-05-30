@@ -35,13 +35,22 @@ services:
     networks:
       - backend
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/', timeout=3)"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
 
   recommendations:
     image: git.klsh.ru/team4/recommendations:latest
+    command: sh -c "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000"
     environment:
       DATABASE_URL: postgresql://library:library@postgres:5432/library
     depends_on:
       postgres:
+        condition: service_healthy
+      monolith:
         condition: service_healthy
     networks:
       - backend
@@ -49,11 +58,14 @@ services:
 
   reviews:
     image: git.klsh.ru/team4/reviews:latest
+    command: sh -c "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000"
     environment:
       DATABASE_URL: postgresql://library:library@postgres:5432/library
       NOTIFICATIONS_SERVICE_URL: http://notifications:8000
     depends_on:
       postgres:
+        condition: service_healthy
+      monolith:
         condition: service_healthy
     networks:
       - backend
@@ -61,10 +73,13 @@ services:
 
   notifications:
     image: git.klsh.ru/team4/notifications:latest
+    command: sh -c "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000"
     environment:
       DATABASE_URL: postgresql://library:library@postgres:5432/library
     depends_on:
       postgres:
+        condition: service_healthy
+      monolith:
         condition: service_healthy
     networks:
       - backend
