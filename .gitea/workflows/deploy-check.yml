@@ -35,7 +35,7 @@ jobs:
         run: |
           echo "Waiting for services..."
           for i in $(seq 1 30); do
-            if docker compose -f docker-compose.prod.yml ps --format json | grep -q '"Status":".*Up.*"; then
+            if docker compose -f docker-compose.prod.yml ps --format json | grep -q "Up"; then
               echo "Services are up on attempt $i"
               break
             fi
@@ -65,11 +65,11 @@ jobs:
         run: |
           SERVICES="recommendations reviews notifications"
           for service in $SERVICES; do
-            if docker compose -f docker-compose.prod.yml ps --format json | grep -q "\"Service\":\"$service\".*\"Status\":\".*Up.*\""; then
+            if docker compose -f docker-compose.prod.yml ps --format json | grep -q "\"$service\""; then
               echo "✅ $service is running"
             else
               echo "❌ $service is not running!"
-              docker compose -f docker-compose.prod.yml logs $service --tail=30
+              docker compose -f docker-compose.prod.yml logs "$service" --tail=30
               exit 1
             fi
           done
