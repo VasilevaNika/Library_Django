@@ -50,7 +50,8 @@ jobs:
       - name: Check Monolith (Django) via docker exec
         run: |
           echo "Checking Monolith via internal Docker network..."
-          if docker compose -f docker-compose.prod.yml exec -T monolith curl -f -s -o /dev/null http://localhost:8000/; then
+          if docker compose -f docker-compose.prod.yml exec -T monolith \
+              python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/', timeout=5)" 2>/dev/null; then
             echo "✅ Monolith is responding internally on port 8000"
           else
             echo "❌ Monolith is not responding internally"
@@ -61,7 +62,8 @@ jobs:
       - name: Check Recommendations Service via docker exec
         run: |
           echo "Checking Recommendations Service..."
-          if docker compose -f docker-compose.prod.yml exec -T recommendations curl -f -s -o /dev/null http://localhost:8000/; then
+          if docker compose -f docker-compose.prod.yml exec -T recommendations \
+              python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/', timeout=5)" 2>/dev/null; then
             echo "✅ Recommendations Service is responding internally"
           else
             echo "❌ Recommendations Service is not responding"
@@ -72,7 +74,8 @@ jobs:
       - name: Check Reviews Service via docker exec
         run: |
           echo "Checking Reviews Service..."
-          if docker compose -f docker-compose.prod.yml exec -T reviews curl -f -s -o /dev/null http://localhost:8000/; then
+          if docker compose -f docker-compose.prod.yml exec -T reviews \
+              python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/', timeout=5)" 2>/dev/null; then
             echo "✅ Reviews Service is responding internally"
           else
             echo "❌ Reviews Service is not responding"
@@ -83,22 +86,13 @@ jobs:
       - name: Check Notifications Service via docker exec
         run: |
           echo "Checking Notifications Service..."
-          if docker compose -f docker-compose.prod.yml exec -T notifications curl -f -s -o /dev/null http://localhost:8000/; then
+          if docker compose -f docker-compose.prod.yml exec -T notifications \
+              python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/', timeout=5)" 2>/dev/null; then
             echo "✅ Notifications Service is responding internally"
           else
             echo "❌ Notifications Service is not responding"
             docker compose -f docker-compose.prod.yml logs notifications --tail=50
             exit 1
-          fi
-
-      - name: Check external port 8004 (optional)
-        run: |
-          echo "Checking external access on port 8004..."
-          if curl -f -s -o /dev/null http://localhost:8004/; then
-            echo "✅ External access on port 8004 works"
-          else
-            echo "⚠️ External access on port 8004 does not work (but internal is fine)"
-            echo "This might be normal in GitHub Actions environment"
           fi
 
       - name: All services deployed successfully
