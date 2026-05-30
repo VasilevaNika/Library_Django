@@ -24,54 +24,81 @@ jobs:
           docker pull git.klsh.ru/team4/reviews:latest
           docker pull git.klsh.ru/team4/notifications:latest
 
-      - name: Stop existing containers (if any)
+      - name: Stop existing containers
         run: |
           docker compose -f docker-compose.prod.yml down --remove-orphans || true
 
       - name: Start services
-        run: docker compose -f docker-compose.prod.yml up -d
-
-      - name: Wait for all services to start
         run: |
-          echo "Waiting for services..."
-          for i in $(seq 1 30); do
-            if docker compose -f docker-compose.prod.yml ps --format json | grep -q "Up"; then
-              echo "Services are up on attempt $i"
-              break
-            fi
-            echo "Attempt $i/30 — waiting..."
-            sleep 5
-          done
-          
-          echo "=== Container status ==="
+          docker compose -f docker-compose.prod.yml up -d
+
+      - name: Wait for services to initialize
+        run: |
+          echo "Waiting 30 seconds for services to start..."
+          sleep 30
+
+      - name: Show container status
+        run: |
+          echo "=== Container Status ==="
           docker compose -f docker-compose.prod.yml ps
-          
-          echo "=== Monolith logs ==="
-          docker compose -f docker-compose.prod.yml logs monolith --tail=20
 
-      - name: Verify Django health
+      - name: Show all service logs
         run: |
-          if docker compose -f docker-compose.prod.yml exec -T monolith \
-              python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/', timeout=5)" \
-              > /dev/null 2>&1; then
-            echo "✅ Django responded successfully!"
+          echo "=== All Services Logs (last 30 lines) ==="
+          docker compose -f docker-compose.prod.yml logs --tail=30
+
+      - name: Check Monolith (Django)
+        run: |
+          echo "Checking Monolith on port 8004..."
+          if curl -f -s -o /dev/null http://localhost:8004/; then
+            echo "✅ Monolith is responding on port 8004"
           else
-            echo "❌ Django did not respond!"
-            docker compose -f docker-compose.prod.yml logs monolith
+            echo "❌ Monolith is not responding on port 8004"
+            docker compose -f docker-compose.prod.yml logs monolith --tail=50
             exit 1
           fi
 
-      - name: Verify all services running
+      - name: Check Recommendations Service
         run: |
-          SERVICES="recommendations reviews notifications"
-          for service in $SERVICES; do
-            if docker compose -f docker-compose.prod.yml ps --format json | grep -q "\"$service\""; then
-              echo "✅ $service is running"
-            else
-              echo "❌ $service is not running!"
-              docker compose -f docker-compose.prod.yml logs "$service" --tail=30
-              exit 1
-            fi
-          done
-          
-          echo "🎉 All services deployed successfully!"
+          echo "Checking Recommendations Service on port 8001..."
+          if curl -f -s -o /dev/null http://localhost:8001/; then
+            echo "✅ Recommendations Service is responding on port 8001"
+          else
+            echo "❌ Recommendations Service is not responding on port 8001"
+            docker compose -f docker-compose.prod.yml logs recommendations --tail=50
+            exit 1
+          fi
+
+      - name: Check Reviews Service
+        run: |
+          echo "Checking Reviews Service on port 8002..."
+          if curl -f -s -o /dev/null http://localhost:8002/; then
+            echo "✅ Reviews Service is responding on port 8002"
+          else
+            echo "❌ Reviews Service is not responding on port 8002"
+            docker compose -f docker-compose.prod.yml logs reviews --tail=50
+            exit 1
+          fi
+
+      - name: Check Notifications Service
+        run: |
+          echo "Checking Notifications Service on port 8003..."
+          if curl -f -s -o /dev/null http://localhost:8003/; then
+            echo "✅ Notifications Service is responding on port 8003"
+          else
+            echo "❌ Notifications Service is not responding on port 8003"
+            docker compose -f docker-compose.prod.yml logs notifications --tail=50
+            exit 1
+          fi
+
+      - name: All services deployed successfully
+        run: |
+          echo "🎉🎉🎉 ALL SERVICES DEPLOYED SUCCESSFULLY! 🎉🎉🎉"
+          echo ""
+          echo "Services running:"
+          echo "  - Monolith (Django): http://localhost:8004"
+          echo "  - Recommendations: http://localhost:8001"
+          echo "  - Reviews: http://localhost:8002"
+          echo "  - Notifications: http://localhost:8003"
+          echo ""
+          echo "PostgreSQL is running on port 5434 (internal) or 5432 (container)"
