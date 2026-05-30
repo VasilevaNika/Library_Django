@@ -1,0 +1,130 @@
+name: Debug Logs - Get Errors
+
+on:
+  workflow_dispatch:
+
+jobs:
+  debug:
+    name: Get all logs and connection info
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Login to Gitea Container Registry
+        run: |
+          echo "${{ secrets.RUNNER_TOKEN }}" | docker login git.klsh.ru \
+            -u team4 --password-stdin
+
+      - name: Pull latest images
+        run: |
+          docker pull git.klsh.ru/team4/library:latest
+          docker pull git.klsh.ru/team4/recommendations:latest
+          docker pull git.klsh.ru/team4/reviews:latest
+          docker pull git.klsh.ru/team4/notifications:latest
+
+      - name: Start services (if not running)
+        run: |
+          docker compose -f docker-compose.prod.yml up -d
+          sleep 10
+
+      - name: Show container status
+        run: |
+          echo "=== CONTAINER STATUS ==="
+          docker compose -f docker-compose.prod.yml ps
+
+      - name: Show ALL logs
+        run: |
+          echo "=== MONOLITH LOGS ==="
+          docker compose -f docker-compose.prod.yml logs monolith --tail=100
+          echo ""
+          echo "=== REVIEWS LOGS ==="
+          docker compose -f docker-compose.prod.yml logs reviews --tail=100
+          echo ""
+          echo "=== RECOMMENDATIONS LOGS ==="
+          docker compose -f docker-compose.prod.yml logs recommendations --tail=100
+          echo ""
+          echo "=== NOTIFICATIONS LOGS ==="
+          docker compose -f docker-compose.prod.yml logs notifications --tail=100
+
+      - name: Check environment variables in Monolith
+        run: |
+          echo "=== MONOLITH ENV VARIABLES ==="
+          docker compose -f docker-compose.prod.yml exec -T monolith python -c "
+import os
+print('REVIEWS_SERVICE_URL:', os.getenv('REVIEWS_SERVICE_URL'))
+print('RECOMMENDATIONS_SERVICE_URL:', os.getenv('RECOMMENDATIONS_SERVICE_URL'))
+print('NOTIFICATIONS_SERVICE_URL:', os.getenv('NOTIFICATIONS_SERVICE_URL'))
+print('DATABASE_URL:', os.getenv('DATABASE_URL', 'not set')[:50] + '...')
+"
+
+      - name: Test connection from Monolith to Reviews
+        run: |
+          echo "=== TESTING CONNECTION FROM MONOLITH TO REVIEWS ==="
+          docker compose -f docker-compose.prod.yml exec -T monolith python -c "
+import urllib.request
+import urllib.error
+try:
+    response = urllib.request.urlopen('http://reviews:8000/', timeout=5)
+    print('✅ Reviews service is reachable, status code:', response.getcode())
+except urllib.error.URLError as e:
+    print('❌ Cannot reach reviews service:', e.reason)
+except Exception as e:
+    print('❌ Error:', str(e))
+"
+
+      - name: Check if Alembic migrations were applied in Reviews
+        run: |
+          echo "=== CHECKING REVIEWS DATABASE TABLES ==="
+          docker compose -f docker-compose.prod.yml exec -T reviews python -c "
+from app.database import engine
+from sqlalchemy import inspect
+try:
+    inspector = inspect(engine)
+    tables = inspector.get_table_names()
+    print('Tables in database for reviews:', tables)
+except Exception as e:
+    print('❌ Error checking tables:', str(e))
+"
+
+      - name: Check Reviews service API endpoints
+        run: |
+          echo "=== CHECKING REVIEWS API ENDPOINTS ==="
+          docker compose -f docker-compose.prod.yml exec -T reviews python -c "
+import httpx
+try:
+    # Проверяем корневой эндпоинт
+    response = httpx.get('http://localhost:8000/', timeout=5)
+    print('Root endpoint:', response.status_code)
+except Exception as e:
+    print('Root endpoint error:', str(e))
+
+try:
+    # Проверяем /docs (FastAPI документация)
+    response = httpx.get('http://localhost:8000/docs', timeout=5)
+    print('Docs endpoint:', response.status_code)
+except Exception as e:
+    print('Docs endpoint error:', str(e))
+"
+
+      - name: Test creating a review via internal call
+        run: |
+          echo "=== TESTING REVIEW CREATION ==="
+          docker compose -f docker-compose.prod.yml exec -T reviews python -c "
+import httpx
+import json
+# Пример данных для создания отзыва
+test_review = {
+    'book_id': 1,
+    'user_id': 1,
+    'rating': 5,
+    'comment': 'Test review'
+}
+try:
+    response = httpx.post('http://localhost:8000/reviews/', json=test_review, timeout=10)
+    print('Status code:', response.status_code)
+    print('Response:', response.text[:200])
+except Exception as e:
+    print('Error:', str(e))
+"
