@@ -44,6 +44,62 @@
             --shadow-md: 0 4px 16px rgba(0,0,0,0.10);
             --shadow-lg: 0 10px 36px rgba(0,0,0,0.14);
             --shadow-primary: 0 4px 20px rgba(232,129,27,0.28);
+
+            /* STATUS COLORS */
+            --c-status-available: #2D7A4F;
+            --c-status-queue:     #C5661A;
+            --c-status-onhand:    #2B6CB0;
+            --c-status-review:    #6B5B95;
+
+            /* SPACING */
+            --space-xs:  0.5rem;
+            --space-sm:  0.75rem;
+            --space-md:  1rem;
+            --space-lg:  1.5rem;
+            --space-xl:  2rem;
+            --space-2xl: 4.2rem;
+
+            /* FONT SIZE */
+            --text-xs:   0.85rem;
+            --text-sm:   0.88rem;
+            --text-base: 1rem;
+            --text-lg:   1.1rem;
+            --text-xl:   2.5rem;
+
+            /* WHITE / BLACK */
+            --c-white: #fff;
+            --c-black: #000;
+
+            /* HOVER STATES */
+            --c-danger-hover:  #a12626;
+            --c-success-hover: #245f3e;
+
+            /* SUBTLE OVERLAYS */
+            --c-danger-subtle:  rgba(197, 48, 48, 0.1);
+            --c-warning-subtle: rgba(245, 158, 11, 0.1);
+
+            /* ДОПОЛНИТЕЛЬНЫЕ РАЗМЕРЫ ШРИФТА */
+            --text-3xs:      0.7rem;  /* минимальный текст — бейджи статусов */
+            --text-2xs:      0.75rem;
+            --text-caption:  0.8rem;
+            --text-body-sm:  0.92rem;
+            --text-title-xs: 1.3rem;  /* заголовки уровня h3 (имя пользователя и т.п.) */
+            --text-title-sm: 1.4rem;
+            --text-title-md: 1.5rem;  /* заголовки форм (h1) и крупные акцентные иконки */
+            --text-2xl:      2rem;    /* крупные числа: stat-number, name-preview */
+
+            /* ДОПОЛНИТЕЛЬНЫЕ ОТСТУПЫ */
+            --space-xxs:     0.2rem;  /* минимальные отступы между мелкими элементами */
+            --space-xs-plus: 0.6rem;  /* между --space-xs (0.5rem) и --space-sm (0.75rem) */
+            --space-sm-plus: 0.85rem; /* вертикальный padding в ячейках таблиц */
+            --space-card:    1.4rem;
+            --space-xs2:     1.25rem;
+            --space-3xl:     3rem;    /* padding empty-state блоков */
+            --space-eyebrow:  0.4rem;  /* margin-bottom eyebrow-лейбла над заголовком секции */
+            --space-form-hint: 0.3rem; /* margin-top подсказки/ошибки под полем формы */
+
+            /* ФОКУС-ТЕНЬ */
+            --shadow-focus: 0 0 0 3px var(--c-primary-subtle);
         }
 
         /* ===== RESET / BASE ===== */
@@ -78,27 +134,17 @@
         .navbar-nav .nav-link {
             color: var(--c-text-muted-inv) !important;
             font-weight: 500;
-            font-size: 0.88rem;
+            font-size: var(--text-sm);
             padding: 0.42rem 0.85rem !important;
             border-radius: var(--radius-full);
             transition: color 0.18s, background 0.18s;
             letter-spacing: 0.01em;
         }
 
-        .navbar-nav .nav-link:hover {
-            color: var(--c-text-inv) !important;
-            background: rgba(255,255,255,0.07);
-        }
-
-        .nav-cta {
+        .navbar-nav .nav-link.nav-cta {
             background: var(--c-primary) !important;
-            color: #fff !important;
+            color: var(--c-white) !important;
             font-weight: 700 !important;
-        }
-
-        .nav-cta:hover {
-            background: var(--c-primary-dark) !important;
-            color: #fff !important;
         }
 
         /* ===== BUTTONS ===== */
@@ -112,15 +158,18 @@
         }
 
         .btn-primary {
+            --bs-btn-bg:                  var(--c-primary);
+            --bs-btn-color:               var(--c-white);
+            --bs-btn-border-color:        var(--c-primary);
+            --bs-btn-hover-bg:            var(--c-primary);
+            --bs-btn-hover-color:         var(--c-white);
+            --bs-btn-hover-border-color:  var(--c-primary);
+            --bs-btn-active-bg:           var(--c-primary);
+            --bs-btn-active-color:        var(--c-white);
+            --bs-btn-active-border-color: var(--c-primary);
             background: var(--c-primary);
-            color: #fff;
+            color: var(--c-white);
             box-shadow: var(--shadow-primary);
-        }
-        .btn-primary:hover, .btn-primary:focus {
-            background: var(--c-primary-dark);
-            color: #fff;
-            transform: translateY(-1px);
-            box-shadow: 0 6px 24px rgba(232,129,27,0.38);
         }
 
         .btn-outline-primary {
@@ -128,19 +177,10 @@
             color: var(--c-primary);
             border: 2px solid var(--c-primary);
         }
-        .btn-outline-primary:hover {
-            background: var(--c-primary);
-            color: #fff;
-        }
 
         .btn-dark {
             background: var(--c-dark);
-            color: #fff;
-        }
-        .btn-dark:hover {
-            background: var(--c-dark-2);
-            color: #fff;
-            transform: translateY(-1px);
+            color: var(--c-white);
         }
 
         .btn-outline-secondary {
@@ -148,48 +188,57 @@
             color: var(--c-text-muted);
             border: 1.5px solid var(--c-light-3);
         }
-        .btn-outline-secondary:hover {
-            background: var(--c-light-2);
-            color: var(--c-text);
-            border-color: var(--c-light-3);
-        }
 
         .btn-success {
             background: var(--c-success);
-            color: #fff;
+            color: var(--c-white);
         }
-        .btn-success:hover { background: #245f3e; color: #fff; }
 
-        .btn-danger { background: var(--c-danger); color: #fff; }
-        .btn-danger:hover { background: #a12626; color: #fff; }
+        .btn-danger { background: var(--c-danger); color: var(--c-white); }
 
         .btn-outline-danger {
             background: transparent;
             color: var(--c-danger);
             border: 1.5px solid var(--c-danger);
         }
-        .btn-outline-danger:hover { background: var(--c-danger); color: #fff; }
 
         .btn-secondary { background: var(--c-light-3); color: var(--c-text); border: none; }
-        .btn-secondary:hover { background: var(--c-light-2); color: var(--c-text); }
 
-        .btn-lg { padding: 0.75rem 2rem; font-size: 1rem; }
-        .btn-sm { padding: 0.32rem 0.85rem; font-size: 0.8rem; }
+        .btn-lg { padding: var(--space-sm) var(--space-xl); font-size: var(--text-base); }
+        .btn-sm { padding: 0.32rem 0.85rem; font-size: var(--text-caption); }
         .btn-link { color: var(--c-primary); text-decoration: none; }
-        .btn-link:hover { color: var(--c-primary-dark); }
+
+        /* ===== ПУНКТ 3: убираем синий Bootstrap focus/active ===== */
+        .btn:focus,
+        .btn:focus-visible,
+        .btn.active,
+        .btn:active {
+            box-shadow: var(--shadow-focus) !important;
+            outline: none !important;
+        }
 
         /* ===== CARDS ===== */
         .card {
             border-radius: var(--radius-lg);
             border: 1px solid var(--c-light-3);
-            background: #fff;
+            background: var(--c-white);
             box-shadow: var(--shadow-sm);
             transition: box-shadow 0.22s, transform 0.22s;
             overflow: hidden;
             margin-bottom: 0;
         }
 
-        .card:hover {
+        .book-card {
+            cursor: pointer;
+        }
+
+        .book-card .book-fav-btn,
+        .book-card form,
+        .book-card a {
+            cursor: pointer;
+        }
+
+        .book-card:hover {
             box-shadow: var(--shadow-lg);
             transform: translateY(-3px);
         }
@@ -198,9 +247,9 @@
             background: var(--c-dark);
             color: var(--c-text-inv);
             border-bottom: none;
-            padding: 1rem 1.4rem;
+            padding: var(--space-md) var(--space-card);
             font-weight: 700;
-            font-size: 0.95rem;
+            font-size: var(--text-body-sm);
             letter-spacing: -0.01em;
         }
 
@@ -209,46 +258,46 @@
             color: var(--c-text);
         }
 
-        .card-body { padding: 1.4rem; }
+        .card-body { padding: var(--space-card); }
 
         .card-footer {
             background: var(--c-light);
             border-top: 1px solid var(--c-light-3);
-            padding: 0.85rem 1.4rem;
+            padding: 0.85rem var(--space-card);
         }
 
         /* ===== BADGES ===== */
         .badge {
             border-radius: var(--radius-sm);
             font-weight: 600;
-            font-size: 0.72rem;
+            font-size: var(--text-2xs);
             padding: 0.32em 0.65em;
             letter-spacing: 0.03em;
             text-transform: uppercase;
         }
 
-        .badge.bg-primary   { background: var(--c-primary) !important; color: #fff !important; }
-        .badge.bg-success   { background: var(--c-success) !important; color: #fff !important; }
-        .badge.bg-danger    { background: var(--c-danger)  !important; color: #fff !important; }
-        .badge.bg-warning   { background: var(--c-primary) !important; color: #fff !important; }
-        .badge.bg-info      { background: var(--c-info)    !important; color: #fff !important; }
+        .badge.bg-primary   { background: var(--c-primary) !important; color: var(--c-white) !important; }
+        .badge.bg-success   { background: var(--c-success) !important; color: var(--c-white) !important; }
+        .badge.bg-danger    { background: var(--c-danger)  !important; color: var(--c-white) !important; }
+        .badge.bg-warning   { background: var(--c-primary) !important; color: var(--c-white) !important; }
+        .badge.bg-info      { background: var(--c-info)    !important; color: var(--c-white) !important; }
         .badge.bg-secondary { background: var(--c-light-3) !important; color: var(--c-text) !important; }
 
         /* ===== FORMS ===== */
         .form-control, .form-select {
             border: 1.5px solid var(--c-light-3);
             border-radius: var(--radius-md);
-            padding: 0.6rem 1rem;
+            padding: 0.6rem var(--space-md);
             font-family: 'Inter', sans-serif;
             font-size: 0.92rem;
             color: var(--c-text);
-            background: #fff;
+            background: var(--c-white);
             transition: border-color 0.18s, box-shadow 0.18s;
         }
 
         .form-control:focus, .form-select:focus {
             border-color: var(--c-primary);
-            box-shadow: 0 0 0 3px rgba(232,129,27,0.14);
+            box-shadow: var(--shadow-focus);
             outline: none;
         }
 
@@ -259,14 +308,14 @@
             margin-bottom: 0.38rem;
         }
 
-        .form-text { color: var(--c-text-muted); font-size: 0.8rem; }
+        .form-text { color: var(--c-text-muted); font-size: var(--text-caption); }
 
         .input-group-text {
             background: var(--c-dark);
             color: var(--c-text-inv);
             border: none;
             border-radius: var(--radius-md) 0 0 var(--radius-md);
-            font-size: 0.9rem;
+            font-size: var(--text-body-sm);
         }
 
         .input-group .form-control {
@@ -283,8 +332,29 @@
         .alert {
             border-radius: var(--radius-md);
             border: none;
-            padding: 1rem 1.25rem;
-            font-size: 0.9rem;
+            padding: var(--space-md) var(--space-xs2);
+            font-size: var(--text-body-sm);
+        }
+
+        .alert-success {
+            background: var(--c-light-2);
+            border-left: 3px solid var(--c-success);
+            color: var(--c-text);
+        }
+        .alert-danger {
+            background: var(--c-danger-subtle);
+            border-left: 3px solid var(--c-danger);
+            color: var(--c-text);
+        }
+        .alert-warning {
+            background: var(--c-warning-subtle);
+            border-left: 3px solid var(--c-primary);
+            color: var(--c-text);
+        }
+        .alert-info {
+            background: var(--c-light-2);
+            border-left: 3px solid var(--c-info);
+            color: var(--c-text);
         }
 
         /* ===== LIST GROUP ===== */
@@ -292,27 +362,33 @@
             border-color: var(--c-light-3);
             color: var(--c-text);
             font-weight: 500;
-            font-size: 0.88rem;
+            font-size: var(--text-sm);
             transition: background 0.15s, color 0.15s;
         }
 
         .list-group-item.active {
             background: var(--c-primary);
             border-color: var(--c-primary);
-            color: #fff;
+            color: var(--c-white);
         }
 
-        .list-group-item-action:hover {
-            background: var(--c-light-2);
-            color: var(--c-text);
+        /* ===== ПУНКТ 4: оранжевые чекбоксы ===== */
+        .form-check-input:checked {
+            background-color: var(--c-primary) !important;
+            border-color: var(--c-primary) !important;
+        }
+
+        .form-check-input:focus {
+            box-shadow: var(--shadow-focus) !important;
+            border-color: var(--c-primary) !important;
         }
 
         /* ===== BREADCRUMB ===== */
         .breadcrumb {
             background: transparent;
             padding: 0;
-            margin-bottom: 1.5rem;
-            font-size: 0.85rem;
+            margin-bottom: var(--space-lg);
+            font-size: var(--text-xs);
         }
 
         .breadcrumb-item a {
@@ -330,7 +406,7 @@
             font-weight: 800;
             letter-spacing: -0.03em;
             color: var(--c-text);
-            margin-bottom: 1.5rem;
+            margin-bottom: var(--space-lg);
             line-height: 1.15;
         }
 
@@ -342,7 +418,7 @@
             height: 3px;
             background: var(--c-primary);
             border-radius: 2px;
-            margin-top: 0.6rem;
+            margin-top: var(--space-xs-plus);
         }
 
         /* ===== STAT BLOCK ===== */
@@ -355,7 +431,7 @@
         }
 
         .stat-label {
-            font-size: 0.8rem;
+            font-size: var(--text-caption);
             font-weight: 600;
             color: var(--c-text-muted);
             text-transform: uppercase;
@@ -406,21 +482,21 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 1.5rem;
+            padding: var(--space-lg);
         }
 
         .book-cover-placeholder span {
             color: var(--c-text-inv);
             font-weight: 700;
-            font-size: 1rem;
+            font-size: var(--text-base);
             text-align: center;
             line-height: 1.35;
         }
 
         .book-fav-btn {
             position: absolute;
-            top: 0.75rem;
-            right: 0.75rem;
+            top: var(--space-sm);
+            right: var(--space-sm);
             width: 34px;
             height: 34px;
             border-radius: 50%;
@@ -429,13 +505,12 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1rem;
+            font-size: var(--text-base);
             cursor: pointer;
             transition: background 0.15s, transform 0.15s;
             box-shadow: var(--shadow-sm);
         }
 
-        .book-fav-btn:hover { background: #fff; transform: scale(1.08); }
         .book-fav-btn .bi-heart-fill { color: var(--c-danger); }
         .book-fav-btn .bi-heart { color: var(--c-text-muted); }
 
@@ -462,7 +537,7 @@
                 <span class="brand-accent"> Между</span> строк
             </a>
             <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-label="Меню">
-                <i class="bi bi-list" style="color: white; font-size: 1.5rem;"></i>
+                <i class="bi bi-list" style="color: var(--c-white); font-size: var(--text-title-md);"></i>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <div class="navbar-nav ms-auto align-items-lg-center gap-1">
@@ -507,5 +582,22 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('click', function (e) {
+            const card = e.target.closest('.book-card');
+            if (!card) return;
+
+            if (e.target.closest('.book-fav-btn') ||
+                e.target.closest('form') ||
+                e.target.closest('a')) {
+                return;
+            }
+
+            const url = card.dataset.bookUrl;
+            if (url) {
+                window.location.href = url;
+            }
+        });
+    </script>
 </body>
 </html>

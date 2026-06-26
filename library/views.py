@@ -3,6 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
 from django.db.models import Q
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
+from django.http import JsonResponse
 from django.contrib.auth import login, logout
 from django.contrib import messages
 from .models import Book, Author, Genre, Favorite, Profile, BookCopy, Reservation
@@ -15,6 +16,10 @@ from .microservices_reviews_notifications import (
     format_service_error,
 )
 from .recommendations_client import fetch_new_books_from_recommendations_service
+
+def health(request):
+    return JsonResponse({"status": "ok"})
+
 
 def home(request):
     genres = Genre.objects.all()

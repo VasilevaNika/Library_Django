@@ -38,11 +38,11 @@
         <!-- HEADER -->
         <div class="d-flex justify-content-between align-items-start mb-4 flex-wrap gap-2">
             <div>
-                <h2 class="section-title" style="margin-bottom: 0.25rem;">
+                <h2 class="section-title" style="margin-bottom: var(--space-xxs);">
                     Каталог книг
                     <span class="section-divider"></span>
                 </h2>
-                <p style="color: var(--c-text-muted); font-size: 0.85rem; margin-top: 0.6rem;">
+                <p style="color: var(--c-text-muted); font-size: var(--text-xs); margin-top: var(--space-xs-plus);">
                     Найдено: <strong style="color: var(--c-text);">{{ books.count }}</strong> книг
                 </p>
             </div>
@@ -76,7 +76,7 @@
         <div class="row g-3">
             {% for book in books %}
             <div class="col-lg-4 col-md-6">
-                <div class="card book-card h-100">
+                <div class="card book-card h-100" data-book-url="/books/{{ book.pk }}/">
                     <div class="book-cover-wrap">
                         {% if book.cover %}
                             <img src="{{ book.cover.url }}" alt="{{ book.title }}">
@@ -106,20 +106,20 @@
                         {% endif %}
                     </div>
 
-                    <div class="card-body d-flex flex-column" style="padding: 1rem;">
+                    <div class="card-body d-flex flex-column" style="padding: var(--space-md);">
                         <div class="mb-2">
                             {% for genre in book.genres.all|slice:":2" %}
                                 <span class="badge bg-secondary me-1">{{ genre.name }}</span>
                             {% endfor %}
                         </div>
-                        <h6 style="font-weight: 700; font-size: 0.92rem; line-height: 1.35; margin-bottom: 0.3rem;">
+                        <h6 style="font-weight: 700; font-size: var(--text-body-sm); line-height: 1.35; margin-bottom: 0.3rem;">
                             {{ book.title }}
                         </h6>
-                        <p style="font-size: 0.8rem; color: var(--c-text-muted); margin-bottom: 0.5rem;">
+                        <p style="font-size: var(--text-caption); color: var(--c-text-muted); margin-bottom: var(--space-xs);">
                             {{ book.author.name }}
                         </p>
                         {% if book.description %}
-                        <p style="font-size: 0.78rem; color: var(--c-text-muted); line-height: 1.5; margin-bottom: 0.8rem;">
+                        <p style="font-size: var(--text-2xs); color: var(--c-text-muted); line-height: 1.5; margin-bottom: var(--space-sm);">
                             {{ book.description|truncatewords:14 }}
                         </p>
                         {% endif %}
@@ -143,13 +143,13 @@
                 <div style="
                     background: var(--c-dark);
                     border-radius: var(--radius-lg);
-                    padding: 3rem 2rem;
+                    padding: var(--space-3xl) var(--space-xl);
                     text-align: center;
                     color: var(--c-text-inv);
                 ">
-                    <i class="bi bi-search" style="font-size: 2.5rem; color: var(--c-primary); display: block; margin-bottom: 1rem;"></i>
-                    <h5 style="font-weight: 700; margin-bottom: 0.5rem;">Книги не найдены</h5>
-                    <p style="color: var(--c-text-muted-inv); font-size: 0.88rem; margin-bottom: 1.25rem;">
+                    <i class="bi bi-search" style="font-size: var(--text-xl); color: var(--c-primary); display: block; margin-bottom: var(--space-md);"></i>
+                    <h5 style="font-weight: 700; margin-bottom: var(--space-xs);">Книги не найдены</h5>
+                    <p style="color: var(--c-text-muted-inv); font-size: var(--text-sm); margin-bottom: var(--space-xs2);">
                         Попробуйте изменить параметры поиска или фильтры.
                     </p>
                     <a href="/books/" class="btn btn-primary btn-sm">Показать все книги</a>

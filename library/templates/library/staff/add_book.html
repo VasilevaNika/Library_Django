@@ -12,7 +12,7 @@
 </div>
 
 <div class="mb-5">
-    <p style="color: var(--c-primary); font-weight: 700; font-size: 0.75rem; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 0.4rem;">
+    <p style="color: var(--c-primary); font-weight: 700; font-size: var(--text-2xs); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: var(--space-eyebrow);">
         Сотрудник
     </p>
     <h1 class="section-title" style="margin-bottom: 0;">
@@ -34,48 +34,48 @@
                     <i class="bi bi-book me-2" style="color: var(--c-primary);"></i>
                     Основная информация
                 </div>
-                <div class="card-body" style="padding: 1.25rem 1.5rem;">
+                <div class="card-body" style="padding: var(--space-xs2) var(--space-lg);">
 
                     <div class="mb-3">
-                        <label class="form-label" style="font-weight: 600; font-size: 0.88rem;">
-                            {{ form.title.label }} <span style="color: #ef4444;">*</span>
+                        <label class="form-label" style="font-weight: 600; font-size: var(--text-sm);">
+                            {{ form.title.label }} <span style="color: var(--c-danger);">*</span>
                         </label>
                         {{ form.title }}
                         {% if form.title.errors %}
-                        <div style="color: #ef4444; font-size: 0.78rem; margin-top: 0.3rem;">{{ form.title.errors }}</div>
+                        <div style="color: var(--c-danger); font-size: var(--text-2xs); margin-top: var(--space-form-hint);">{{ form.title.errors }}</div>
                         {% endif %}
                     </div>
 
                     <!-- Author -->
                     <div class="mb-2">
-                        <label class="form-label" style="font-weight: 600; font-size: 0.88rem;">
+                        <label class="form-label" style="font-weight: 600; font-size: var(--text-sm);">
                             {{ form.author.label }}
                         </label>
                         {{ form.author }}
                         {% if form.author.errors %}
-                        <div style="color: #ef4444; font-size: 0.78rem; margin-top: 0.3rem;">{{ form.author.errors }}</div>
+                        <div style="color: var(--c-danger); font-size: var(--text-2xs); margin-top: var(--space-form-hint);">{{ form.author.errors }}</div>
                         {% endif %}
                     </div>
 
                     <div class="mb-3" style="
                         border-left: 2px solid var(--c-light-3);
                         padding-left: 0.9rem;
-                        margin-left: 0.5rem;
+                        margin-left: var(--space-xs);
                     ">
-                        <label class="form-label" style="font-weight: 600; font-size: 0.82rem; color: var(--c-text-muted);">
+                        <label class="form-label" style="font-weight: 600; font-size: var(--text-caption); color: var(--c-text-muted);">
                             {{ form.new_author.label }}
                         </label>
                         {{ form.new_author }}
                         {% if form.new_author.errors %}
-                        <div style="color: #ef4444; font-size: 0.78rem; margin-top: 0.3rem;">{{ form.new_author.errors }}</div>
+                        <div style="color: var(--c-danger); font-size: var(--text-2xs); margin-top: var(--space-form-hint);">{{ form.new_author.errors }}</div>
                         {% endif %}
-                        <div style="font-size: 0.73rem; color: var(--c-text-muted); margin-top: 0.3rem;">
+                        <div style="font-size: var(--text-3xs); color: var(--c-text-muted); margin-top: var(--space-form-hint);">
                             Заполните это поле только если автора нет в списке выше
                         </div>
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label" style="font-weight: 600; font-size: 0.88rem;">
+                        <label class="form-label" style="font-weight: 600; font-size: var(--text-sm);">
                             {{ form.description.label }}
                         </label>
                         {{ form.description }}
@@ -90,15 +90,15 @@
                     <i class="bi bi-tags me-2" style="color: var(--c-primary);"></i>
                     Жанры
                 </div>
-                <div class="card-body" style="padding: 1rem 1.5rem;">
-                    <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.9rem;">
+                <div class="card-body" style="padding: var(--space-md) var(--space-lg);">
+                    <div style="display: flex; flex-wrap: wrap; gap: var(--space-xs); margin-bottom: 0.9rem;">
                         {% for checkbox in form.genres %}
                         <label style="
                             display: flex;
                             align-items: center;
                             gap: 0.4rem;
                             cursor: pointer;
-                            font-size: 0.82rem;
+                            font-size: var(--text-caption);
                             background: var(--c-light-2);
                             border: 1.5px solid var(--c-light-3);
                             border-radius: var(--radius-sm);
@@ -112,11 +112,11 @@
                     </div>
 
                     <div>
-                        <label class="form-label" style="font-weight: 600; font-size: 0.82rem; color: var(--c-text-muted);">
+                        <label class="form-label" style="font-weight: 600; font-size: var(--text-caption); color: var(--c-text-muted);">
                             {{ form.new_genres.label }}
                         </label>
                         {{ form.new_genres }}
-                        <div style="font-size: 0.73rem; color: var(--c-text-muted); margin-top: 0.3rem;">
+                        <div style="font-size: var(--text-3xs); color: var(--c-text-muted); margin-top: var(--space-form-hint);">
                             Жанров нет в списке? Введите через запятую — они будут созданы автоматически
                         </div>
                     </div>
@@ -129,16 +129,16 @@
                     <i class="bi bi-paperclip me-2" style="color: var(--c-primary);"></i>
                     Файлы (необязательно)
                 </div>
-                <div class="card-body" style="padding: 1.25rem 1.5rem;">
+                <div class="card-body" style="padding: var(--space-xs2) var(--space-lg);">
                     <div class="mb-3">
-                        <label class="form-label" style="font-weight: 600; font-size: 0.88rem;">{{ form.cover.label }}</label>
+                        <label class="form-label" style="font-weight: 600; font-size: var(--text-sm);">{{ form.cover.label }}</label>
                         {{ form.cover }}
-                        <div style="font-size: 0.73rem; color: var(--c-text-muted); margin-top: 0.3rem;">JPG, PNG — будет показана в каталоге</div>
+                        <div style="font-size: var(--text-3xs); color: var(--c-text-muted); margin-top: var(--space-form-hint);">JPG, PNG — будет показана в каталоге</div>
                     </div>
                     <div>
-                        <label class="form-label" style="font-weight: 600; font-size: 0.88rem;">{{ form.book_file.label }}</label>
+                        <label class="form-label" style="font-weight: 600; font-size: var(--text-sm);">{{ form.book_file.label }}</label>
                         {{ form.book_file }}
-                        <div style="font-size: 0.73rem; color: var(--c-text-muted); margin-top: 0.3rem;">
+                        <div style="font-size: var(--text-3xs); color: var(--c-text-muted); margin-top: var(--space-form-hint);">
                             Если книга только физическая — оставьте пустым
                         </div>
                     </div>
@@ -153,27 +153,27 @@
                             {{ form.add_copy }}
                         </div>
                         <label class="form-check-label" for="addCopyCheck"
-                               style="font-weight: 700; font-size: 0.85rem; cursor: pointer; margin: 0;">
+                               style="font-weight: 700; font-size: var(--text-xs); cursor: pointer; margin: 0;">
                             {{ form.add_copy.label }}
                         </label>
                     </div>
                 </div>
-                <div class="card-body" style="padding: 1.25rem 1.5rem;" id="copyFields">
+                <div class="card-body" style="padding: var(--space-xs2) var(--space-lg);" id="copyFields">
                     <div class="mb-3">
-                        <label class="form-label" style="font-weight: 600; font-size: 0.88rem;">
+                        <label class="form-label" style="font-weight: 600; font-size: var(--text-sm);">
                             {{ form.inventory_number.label }}
                         </label>
                         {{ form.inventory_number }}
                         {% if form.inventory_number.errors %}
-                        <div style="color: #ef4444; font-size: 0.78rem; margin-top: 0.3rem;">{{ form.inventory_number.errors }}</div>
+                        <div style="color: var(--c-danger); font-size: var(--text-2xs); margin-top: var(--space-form-hint);">{{ form.inventory_number.errors }}</div>
                         {% endif %}
                     </div>
                     <div class="mb-3">
-                        <label class="form-label" style="font-weight: 600; font-size: 0.88rem;">{{ form.condition.label }}</label>
+                        <label class="form-label" style="font-weight: 600; font-size: var(--text-sm);">{{ form.condition.label }}</label>
                         {{ form.condition }}
                     </div>
                     <div>
-                        <label class="form-label" style="font-weight: 600; font-size: 0.88rem;">{{ form.location.label }}</label>
+                        <label class="form-label" style="font-weight: 600; font-size: var(--text-sm);">{{ form.location.label }}</label>
                         {{ form.location }}
                     </div>
                 </div>
@@ -187,7 +187,7 @@
 
     <!-- RECENT BOOKS -->
     <div class="col-lg-7">
-        <h2 class="section-title" style="font-size: 1.1rem;">
+        <h2 class="section-title" style="font-size: var(--text-lg);">
             Последние добавленные книги
             <span class="section-divider"></span>
         </h2>
@@ -213,37 +213,37 @@
                         {% endif %}
                     </div>
                     <div class="col">
-                        <div class="card-body" style="padding: 0.75rem 1rem;">
+                        <div class="card-body" style="padding: var(--space-sm) var(--space-md);">
                             <div class="d-flex justify-content-between align-items-start gap-2 flex-wrap">
                                 <div>
-                                    <h6 style="font-weight: 700; font-size: 0.88rem; margin-bottom: 0.15rem; line-height: 1.3;">
+                                    <h6 style="font-weight: 700; font-size: var(--text-sm); margin-bottom: var(--space-xxs); line-height: 1.3;">
                                         {{ book.title }}
                                     </h6>
-                                    <p style="font-size: 0.78rem; color: var(--c-text-muted); margin-bottom: 0.4rem;">
+                                    <p style="font-size: var(--text-2xs); color: var(--c-text-muted); margin-bottom: 0.4rem;">
                                         {{ book.author.name }}
                                     </p>
                                 </div>
                                 <div class="d-flex gap-2 align-items-center flex-shrink-0">
                                     {% if book.book_file %}
-                                    <span class="badge bg-secondary" style="font-size: 0.68rem;">
+                                    <span class="badge bg-secondary" style="font-size: var(--text-3xs);">
                                         <i class="bi bi-file-pdf me-1"></i>PDF
                                     </span>
                                     {% else %}
-                                    <span class="badge" style="background: var(--c-light-3); color: var(--c-text-muted); font-size: 0.68rem;">
+                                    <span class="badge" style="background: var(--c-light-3); color: var(--c-text-muted); font-size: var(--text-3xs);">
                                         Только физ.
                                     </span>
                                     {% endif %}
-                                    <span class="badge" style="font-size: 0.68rem;
-                                        {% if book.copies.count > 0 %}background: #4ade80; color: #000;{% else %}background: var(--c-light-3); color: var(--c-text-muted);{% endif %}">
+                                    <span class="badge" style="font-size: var(--text-3xs);
+                                        {% if book.copies.count > 0 %}background: var(--c-status-available); color: var(--c-black);{% else %}background: var(--c-light-3); color: var(--c-text-muted);{% endif %}">
                                         {{ book.copies.count }} экз.
                                     </span>
                                 </div>
                             </div>
                             <div class="d-flex gap-2">
-                                <a href="{% url 'book_detail' book.pk %}" class="btn btn-dark btn-sm" style="font-size: 0.75rem;">
+                                <a href="{% url 'book_detail' book.pk %}" class="btn btn-dark btn-sm" style="font-size: var(--text-2xs);">
                                     Страница книги
                                 </a>
-                                <a href="{% url 'staff_add_copy' %}?book={{ book.pk }}" class="btn btn-outline-secondary btn-sm" style="font-size: 0.75rem;">
+                                <a href="{% url 'staff_add_copy' %}?book={{ book.pk }}" class="btn btn-outline-secondary btn-sm" style="font-size: var(--text-2xs);">
                                     <i class="bi bi-plus me-1"></i>Добавить экземпляр
                                 </a>
                             </div>
@@ -254,7 +254,7 @@
             {% endfor %}
         </div>
         {% else %}
-        <p style="color: var(--c-text-muted); font-size: 0.88rem;">Книг пока нет.</p>
+        <p style="color: var(--c-text-muted); font-size: var(--text-sm);">Книг пока нет.</p>
         {% endif %}
     </div>
 

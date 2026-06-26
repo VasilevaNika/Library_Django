@@ -18,7 +18,7 @@
 
     <div class="row align-items-center" style="position: relative; z-index: 1;">
         <div class="col-lg-7">
-            <p style="color: var(--c-primary); font-weight: 700; font-size: 0.8rem; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 1rem;">
+            <p style="color: var(--c-primary); font-weight: 700; font-size: var(--text-caption); letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: var(--space-md);">
                 Онлайн-библиотека
             </p>
             <h1 style="
@@ -27,12 +27,12 @@
                 font-weight: 900;
                 letter-spacing: -0.04em;
                 line-height: 1.08;
-                margin-bottom: 1.25rem;
+                margin-bottom: var(--space-xs2);
             ">
                 <span style="color: var(--c-primary);">Между строк</span> —<br>
                 здесь живут книги.
             </h1>
-            <p style="color: var(--c-text-muted-inv); font-size: 1rem; max-width: 480px; margin-bottom: 2rem; line-height: 1.6;">
+            <p style="color: var(--c-text-muted-inv); font-size: var(--text-base); max-width: 480px; margin-bottom: var(--space-xl); line-height: 1.6;">
                 Тысячи книг в одном месте. Классика, фантастика, драма — всё, что важно читать.
             </p>
 
@@ -47,7 +47,7 @@
                                style="background: var(--c-dark-2); border-color: var(--c-dark-3); color: var(--c-text-inv); border-radius: 0 var(--radius-md) var(--radius-md) 0;">
                     </div>
                 </div>
-                <button class="btn btn-primary" type="submit" style="padding: 0.6rem 1.5rem; white-space: nowrap;">
+                <button class="btn btn-primary" type="submit" style="padding: 0.6rem var(--space-lg); white-space: nowrap;">
                     Найти книгу
                 </button>
             </form>
@@ -84,7 +84,7 @@
             <div class="row g-3">
                 {% for book in last_three_books %}
                 <div class="col-sm-6 col-md-4">
-                    <div class="card book-card h-100">
+                    <div class="card book-card h-100" data-book-url="/books/{{ book.pk }}/">
                         <div class="book-cover-wrap">
                             {% if book.cover %}
                                 <img src="{{ book.cover.url }}" alt="{{ book.title }}">
@@ -104,16 +104,16 @@
                             {% endif %}
                         </div>
 
-                        <div class="card-body d-flex flex-column" style="padding: 1rem;">
+                        <div class="card-body d-flex flex-column" style="padding: var(--space-md);">
                             <div class="mb-2">
                                 {% for genre in book.genres.all|slice:":2" %}
                                     <span class="badge bg-secondary me-1">{{ genre.name }}</span>
                                 {% endfor %}
                             </div>
-                            <h6 style="font-weight: 700; font-size: 0.92rem; margin-bottom: 0.3rem; line-height: 1.3;">
+                            <h6 style="font-weight: 700; font-size: var(--text-body-sm); margin-bottom: 0.3rem; line-height: 1.3;">
                                 {{ book.title }}
                             </h6>
-                            <p style="font-size: 0.8rem; color: var(--c-text-muted); margin-bottom: 0.8rem;">
+                            <p style="font-size: var(--text-caption); color: var(--c-text-muted); margin-bottom: var(--space-sm);">
                                 {{ book.author.name }}
                             </p>
                             <div class="mt-auto">
@@ -143,8 +143,8 @@
 
             {% if user.is_authenticated %}
                 {% if user_favorite_genres %}
-                    <div style="background: var(--c-primary-subtle); border-left: 3px solid var(--c-primary); border-radius: 0 var(--radius-md) var(--radius-md) 0; padding: 0.85rem 1.1rem; margin-bottom: 1.25rem;">
-                        <p style="font-size: 0.85rem; font-weight: 600; color: var(--c-text); margin: 0;">
+                    <div style="background: var(--c-primary-subtle); border-left: 3px solid var(--c-primary); border-radius: 0 var(--radius-md) var(--radius-md) 0; padding: var(--space-sm-plus) 1.1rem; margin-bottom: var(--space-xs2);">
+                        <p style="font-size: var(--text-xs); font-weight: 600; color: var(--c-text); margin: 0;">
                             На основе ваших предпочтений:
                             {% for genre in user_favorite_genres|slice:":5" %}
                                 <span class="badge bg-primary ms-1">{{ genre.name }}</span>
@@ -157,7 +157,7 @@
                     <div class="row g-3">
                         {% for book in recommended_books|slice:":3" %}
                         <div class="col-sm-6 col-md-4">
-                            <div class="card book-card h-100" style="border-top: 3px solid var(--c-primary);">
+                            <div class="card book-card h-100" data-book-url="/books/{{ book.pk }}/" style="border-top: 3px solid var(--c-primary);">
                                 <div class="book-cover-wrap">
                                     {% if book.cover %}
                                         <img src="{{ book.cover.url }}" alt="{{ book.title }}">
@@ -177,19 +177,19 @@
                                     {% endif %}
                                 </div>
 
-                                <div class="card-body d-flex flex-column" style="padding: 1rem;">
+                                <div class="card-body d-flex flex-column" style="padding: var(--space-md);">
                                     <div class="mb-2">
                                         {% for genre in book.genres.all|slice:":2" %}
                                             <span class="badge bg-secondary me-1">{{ genre.name }}</span>
                                         {% endfor %}
                                     </div>
-                                    <h6 style="font-weight: 700; font-size: 0.92rem; margin-bottom: 0.3rem; line-height: 1.3;">
+                                    <h6 style="font-weight: 700; font-size: var(--text-body-sm); margin-bottom: 0.3rem; line-height: 1.3;">
                                         {{ book.title }}
                                     </h6>
-                                    <p style="font-size: 0.8rem; color: var(--c-text-muted); margin-bottom: 0.5rem;">
+                                    <p style="font-size: var(--text-caption); color: var(--c-text-muted); margin-bottom: var(--space-xs);">
                                         {{ book.author.name }}
                                     </p>
-                                    <p style="font-size: 0.78rem; color: var(--c-primary); font-weight: 600; margin-bottom: 0.8rem;">
+                                    <p style="font-size: var(--text-2xs); color: var(--c-primary); font-weight: 600; margin-bottom: var(--space-sm);">
                                         <i class="bi bi-lightning-charge-fill"></i>
                                         {% with fav_books=user.favorite_books.all|slice:":1" %}
                                             {% for fav_book in fav_books %}
@@ -212,13 +212,13 @@
                     <div style="
                         background: var(--c-dark);
                         border-radius: var(--radius-lg);
-                        padding: 2rem;
+                        padding: var(--space-xl);
                         text-align: center;
                         color: var(--c-text-inv);
                     ">
-                        <i class="bi bi-bookmark-star" style="font-size: 2.5rem; color: var(--c-primary); display: block; margin-bottom: 1rem;"></i>
-                        <h5 style="font-weight: 700; margin-bottom: 0.5rem;">Нет рекомендаций</h5>
-                        <p style="color: var(--c-text-muted-inv); font-size: 0.88rem; margin-bottom: 1.25rem;">
+                        <i class="bi bi-bookmark-star" style="font-size: var(--text-xl); color: var(--c-primary); display: block; margin-bottom: var(--space-md);"></i>
+                        <h5 style="font-weight: 700; margin-bottom: var(--space-xs);">Нет рекомендаций</h5>
+                        <p style="color: var(--c-text-muted-inv); font-size: var(--text-sm); margin-bottom: var(--space-xs2);">
                             Добавьте книги в избранное, чтобы получать персонализированные рекомендации.
                         </p>
                         <a href="/books/" class="btn btn-primary btn-sm">Просмотреть каталог</a>
@@ -232,7 +232,7 @@
                     padding: 2.5rem;
                     display: flex;
                     align-items: center;
-                    gap: 2rem;
+                    gap: var(--space-xl);
                 ">
                     <div style="flex-shrink: 0; color: var(--c-primary); font-size: 3rem;">
                         <i class="bi bi-person-circle"></i>
@@ -241,7 +241,7 @@
                         <h5 style="color: var(--c-text-inv); font-weight: 700; margin-bottom: 0.4rem;">
                             Войдите для персональных рекомендаций
                         </h5>
-                        <p style="color: var(--c-text-muted-inv); font-size: 0.88rem; margin-bottom: 1rem;">
+                        <p style="color: var(--c-text-muted-inv); font-size: var(--text-sm); margin-bottom: var(--space-md);">
                             Система подберёт книги на основе ваших предпочтений.
                         </p>
                         <div class="d-flex gap-2 flex-wrap">
@@ -255,7 +255,7 @@
     </div>
 
     <!-- SIDEBAR (padding-top выравнивает по карточкам книг, компенсируя высоту section-title) -->
-    <div class="col-lg-4" style="padding-top: 4.2rem;">
+    <div class="col-lg-4" style="padding-top: var(--space-2xl);">
 
         <!-- GENRE FILTER -->
         <div class="card mb-4" style="border: none; overflow: hidden;">
@@ -271,7 +271,7 @@
                         <span class="badge bg-secondary">{{ genre.book_set.count }}</span>
                     </a>
                     {% empty %}
-                    <div class="list-group-item text-muted" style="font-size: 0.85rem;">
+                    <div class="list-group-item text-muted" style="font-size: var(--text-xs);">
                         Жанры не найдены
                     </div>
                     {% endfor %}
@@ -281,8 +281,8 @@
 
         <!-- STATS -->
         <div class="card" style="background: var(--c-dark); border: none;">
-            <div class="card-body" style="padding: 1.5rem;">
-                <p style="color: var(--c-primary); font-weight: 700; font-size: 0.75rem; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 1.25rem;">
+            <div class="card-body" style="padding: var(--space-lg);">
+                <p style="color: var(--c-primary); font-weight: 700; font-size: var(--text-2xs); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: var(--space-xs2);">
                     Статистика
                 </p>
                 <div class="row g-3">
@@ -297,9 +297,9 @@
                 </div>
 
                 {% if user.is_authenticated %}
-                <div style="margin-top: 1.5rem; padding-top: 1.25rem; border-top: 1px solid var(--c-dark-3);">
-                    <p style="color: var(--c-text-muted-inv); font-size: 0.82rem; margin-bottom: 0.25rem;">Вы вошли как</p>
-                    <p style="color: var(--c-text-inv); font-weight: 700; margin-bottom: 0.8rem;">{{ user.username }}</p>
+                <div style="margin-top: var(--space-lg); padding-top: var(--space-xs2); border-top: 1px solid var(--c-dark-3);">
+                    <p style="color: var(--c-text-muted-inv); font-size: var(--text-caption); margin-bottom: 0.25rem;">Вы вошли как</p>
+                    <p style="color: var(--c-text-inv); font-weight: 700; margin-bottom: var(--space-sm);">{{ user.username }}</p>
                     {% if user_favorite_genres %}
                         <a href="{% url 'favorite_books' %}" class="btn btn-primary btn-sm w-100">
                             <i class="bi bi-heart-fill me-1"></i> Мои избранные
@@ -307,8 +307,8 @@
                     {% endif %}
                 </div>
                 {% else %}
-                <div style="margin-top: 1.5rem; padding-top: 1.25rem; border-top: 1px solid var(--c-dark-3);">
-                    <p style="color: var(--c-text-muted-inv); font-size: 0.82rem; margin-bottom: 0.8rem;">
+                <div style="margin-top: var(--space-lg); padding-top: var(--space-xs2); border-top: 1px solid var(--c-dark-3);">
+                    <p style="color: var(--c-text-muted-inv); font-size: var(--text-caption); margin-bottom: var(--space-sm);">
                         Войдите для доступа к избранному
                     </p>
                     <a href="{% url 'login' %}" class="btn btn-primary btn-sm w-100">Войти</a>

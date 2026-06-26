@@ -10,7 +10,7 @@
                 <i class="bi bi-arrow-left"></i>
             </a>
             <div>
-                <p style="color: var(--c-primary); font-weight: 700; font-size: 0.75rem; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 0.15rem;">
+                <p style="color: var(--c-primary); font-weight: 700; font-size: var(--text-2xs); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: var(--space-xxs);">
                     Между строк
                 </p>
                 <h1 class="section-title" style="margin-bottom: 0; font-size: 1.4rem;">
@@ -23,15 +23,15 @@
         <div style="
             background: var(--c-dark);
             border-radius: var(--radius-lg);
-            padding: 1.75rem 2rem;
-            margin-bottom: 1.5rem;
+            padding: 1.75rem var(--space-xl);
+            margin-bottom: var(--space-lg);
             text-align: center;
         ">
-            <p style="color: var(--c-text-muted-inv); font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.75rem;">
+            <p style="color: var(--c-text-muted-inv); font-size: var(--text-2xs); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: var(--space-sm);">
                 Предпросмотр имени
             </p>
             <div id="name-preview" style="
-                font-size: 2rem;
+                font-size: var(--text-2xl);
                 font-weight: 900;
                 color: var(--c-primary);
                 letter-spacing: -0.04em;
@@ -47,21 +47,21 @@
                 width: 2.5rem; height: 3px;
                 background: var(--c-primary);
                 border-radius: 2px;
-                margin: 0.75rem auto 0;
+                margin: var(--space-sm) auto 0;
             "></div>
-            <p style="color: var(--c-text-muted-inv); font-size: 0.78rem; margin-top: 0.6rem; margin-bottom: 0;">
+            <p style="color: var(--c-text-muted-inv); font-size: var(--text-2xs); margin-top: var(--space-xs-plus); margin-bottom: 0;">
                 Так будет выглядеть ваше имя в профиле
             </p>
         </div>
 
         <div class="card" style="border: none; box-shadow: var(--shadow-md);">
-            <div class="card-body" style="padding: 2rem;">
+            <div class="card-body" style="padding: var(--space-xl);">
                 <form method="POST" enctype="multipart/form-data">
                     {% csrf_token %}
 
                     <!-- SECTION: MAIN INFO -->
                     <div class="mb-5">
-                        <h5 style="font-weight: 800; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--c-text-muted); margin-bottom: 1.25rem; padding-bottom: 0.6rem; border-bottom: 2px solid var(--c-primary);">
+                        <h5 style="font-weight: 800; font-size: var(--text-xs); text-transform: uppercase; letter-spacing: 0.08em; color: var(--c-text-muted); margin-bottom: var(--space-xs2); padding-bottom: var(--space-xs-plus); border-bottom: 2px solid var(--c-primary);">
                             Основная информация
                         </h5>
 
@@ -74,7 +74,7 @@
                                 {{ user_form.username }}
                             </div>
                             {% if user_form.username.errors %}
-                                <div style="color: var(--c-danger); font-size: 0.82rem; margin-top: 0.3rem;">
+                                <div style="color: var(--c-danger); font-size: var(--text-caption); margin-top: var(--space-form-hint);">
                                     {{ user_form.username.errors }}
                                 </div>
                             {% endif %}
@@ -104,7 +104,7 @@
 
                     <!-- SECTION: CONTACTS -->
                     <div class="mb-5">
-                        <h5 style="font-weight: 800; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--c-text-muted); margin-bottom: 1.25rem; padding-bottom: 0.6rem; border-bottom: 2px solid var(--c-light-3);">
+                        <h5 style="font-weight: 800; font-size: var(--text-xs); text-transform: uppercase; letter-spacing: 0.08em; color: var(--c-text-muted); margin-bottom: var(--space-xs2); padding-bottom: var(--space-xs-plus); border-bottom: 2px solid var(--c-light-3);">
                             Контактная информация
                         </h5>
 
@@ -113,7 +113,7 @@
                             {{ user_form.email }}
                             <p class="form-text">Используется для входа в систему</p>
                             {% if user_form.email.errors %}
-                                <div style="color: var(--c-danger); font-size: 0.82rem; margin-top: 0.3rem;">
+                                <div style="color: var(--c-danger); font-size: var(--text-caption); margin-top: var(--space-form-hint);">
                                     {{ user_form.email.errors }}
                                 </div>
                             {% endif %}
@@ -127,7 +127,7 @@
                                    placeholder="+7 (999) 123-45-67">
                             <p class="form-text">Формат: +79991234567</p>
                             {% if profile_form.phone_number.errors %}
-                                <div style="color: var(--c-danger); font-size: 0.82rem; margin-top: 0.3rem;">
+                                <div style="color: var(--c-danger); font-size: var(--text-caption); margin-top: var(--space-form-hint);">
                                     {{ profile_form.phone_number.errors }}
                                 </div>
                             {% endif %}
@@ -136,7 +136,7 @@
 
                     <!-- SECTION: PERSONAL -->
                     <div class="mb-5">
-                        <h5 style="font-weight: 800; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--c-text-muted); margin-bottom: 1.25rem; padding-bottom: 0.6rem; border-bottom: 2px solid var(--c-light-3);">
+                        <h5 style="font-weight: 800; font-size: var(--text-xs); text-transform: uppercase; letter-spacing: 0.08em; color: var(--c-text-muted); margin-bottom: var(--space-xs2); padding-bottom: var(--space-xs-plus); border-bottom: 2px solid var(--c-light-3);">
                             Личная информация
                         </h5>
 
@@ -171,7 +171,7 @@
                 </form>
             </div>
 
-            <div class="card-footer" style="font-size: 0.8rem; color: var(--c-text-muted);">
+            <div class="card-footer" style="font-size: var(--text-caption); color: var(--c-text-muted);">
                 <i class="bi bi-clock me-1"></i>
                 Последнее обновление:
                 {% if profile.updated_at %}

@@ -3,7 +3,7 @@
 {% block content %}
 
 <div class="mb-5">
-    <p style="color: var(--c-primary); font-weight: 700; font-size: 0.75rem; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 0.4rem;">
+    <p style="color: var(--c-primary); font-weight: 700; font-size: var(--text-2xs); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: var(--space-eyebrow);">
         Между строк — Панель сотрудника
     </p>
     <div class="d-flex justify-content-between align-items-end flex-wrap gap-3">
@@ -26,32 +26,32 @@
 <div class="row g-3 mb-5">
     <div class="col-6 col-md-3">
         <div class="card" style="border: none; text-align: center;">
-            <div class="card-body" style="padding: 1.25rem;">
-                <div class="stat-number" style="font-size: 2rem;">{{ pending|length }}</div>
+            <div class="card-body" style="padding: var(--space-xs2);">
+                <div class="stat-number" style="font-size: var(--text-2xl);">{{ pending|length }}</div>
                 <div class="stat-label">Ожидают выдачи</div>
             </div>
         </div>
     </div>
     <div class="col-6 col-md-3">
-        <div class="card" style="border: none; text-align: center; {% if return_pending %}border-left: 3px solid #f59e0b !important;{% endif %}">
-            <div class="card-body" style="padding: 1.25rem;">
-                <div class="stat-number" style="font-size: 2rem; {% if return_pending %}color: #f59e0b;{% endif %}">{{ return_pending|length }}</div>
+        <div class="card" style="border: none; text-align: center; {% if return_pending %}border-left: 3px solid var(--c-status-queue) !important;{% endif %}">
+            <div class="card-body" style="padding: var(--space-xs2);">
+                <div class="stat-number" style="font-size: var(--text-2xl); {% if return_pending %}color: var(--c-status-queue);{% endif %}">{{ return_pending|length }}</div>
                 <div class="stat-label">Ждут проверки</div>
             </div>
         </div>
     </div>
     <div class="col-6 col-md-3">
         <div class="card" style="border: none; text-align: center;">
-            <div class="card-body" style="padding: 1.25rem;">
-                <div class="stat-number" style="font-size: 2rem;">{{ active|length }}</div>
+            <div class="card-body" style="padding: var(--space-xs2);">
+                <div class="stat-number" style="font-size: var(--text-2xl);">{{ active|length }}</div>
                 <div class="stat-label">На руках</div>
             </div>
         </div>
     </div>
     <div class="col-6 col-md-3">
         <div class="card" style="border: none; text-align: center;">
-            <div class="card-body" style="padding: 1.25rem;">
-                <div class="stat-number" style="font-size: 2rem;">{{ queue|length }}</div>
+            <div class="card-body" style="padding: var(--space-xs2);">
+                <div class="stat-number" style="font-size: var(--text-2xl);">{{ queue|length }}</div>
                 <div class="stat-label">В очереди</div>
             </div>
         </div>
@@ -61,45 +61,45 @@
 <!-- RETURN PENDING: ожидают проверки возврата -->
 {% if return_pending %}
 <div class="mb-5">
-    <h2 class="section-title" style="font-size: 1.1rem;">
-        <i class="bi bi-exclamation-circle me-2" style="color: #f59e0b;"></i>
+    <h2 class="section-title" style="font-size: var(--text-lg);">
+        <i class="bi bi-exclamation-circle me-2" style="color: var(--c-status-queue);"></i>
         Ожидают проверки возврата
         <span class="section-divider"></span>
     </h2>
-    <div class="card" style="border: none; border-left: 3px solid #f59e0b;">
+    <div class="card" style="border: none; border-left: 3px solid var(--c-status-queue);">
         <div class="table-responsive">
-            <table class="table table-hover mb-0" style="font-size: 0.85rem;">
+            <table class="table table-hover mb-0" style="font-size: var(--text-xs);">
                 <thead>
                     <tr style="border-bottom: 2px solid var(--c-light-3);">
-                        <th style="font-weight: 700; color: var(--c-text-muted); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.06em; padding: 0.75rem 1rem;">Читатель</th>
-                        <th style="font-weight: 700; color: var(--c-text-muted); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.06em;">Книга</th>
-                        <th style="font-weight: 700; color: var(--c-text-muted); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.06em;">Экземпляр</th>
-                        <th style="font-weight: 700; color: var(--c-text-muted); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.06em;">Срок выдачи</th>
+                        <th style="font-weight: 700; color: var(--c-text-muted); font-size: var(--text-2xs); text-transform: uppercase; letter-spacing: 0.06em; padding: var(--space-sm) var(--space-md);">Читатель</th>
+                        <th style="font-weight: 700; color: var(--c-text-muted); font-size: var(--text-2xs); text-transform: uppercase; letter-spacing: 0.06em;">Книга</th>
+                        <th style="font-weight: 700; color: var(--c-text-muted); font-size: var(--text-2xs); text-transform: uppercase; letter-spacing: 0.06em;">Экземпляр</th>
+                        <th style="font-weight: 700; color: var(--c-text-muted); font-size: var(--text-2xs); text-transform: uppercase; letter-spacing: 0.06em;">Срок выдачи</th>
                         <th></th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for res in return_pending %}
                     <tr>
-                        <td style="padding: 0.85rem 1rem; vertical-align: middle;">
+                        <td style="padding: var(--space-sm-plus) var(--space-md); vertical-align: middle;">
                             <div style="font-weight: 600;">{{ res.user.get_full_name|default:res.user.username }}</div>
-                            <div style="font-size: 0.75rem; color: var(--c-text-muted);">@{{ res.user.username }}</div>
+                            <div style="font-size: var(--text-2xs); color: var(--c-text-muted);">@{{ res.user.username }}</div>
                         </td>
                         <td style="vertical-align: middle;">
                             <div style="font-weight: 600;">{{ res.book.title|truncatechars:40 }}</div>
-                            <div style="font-size: 0.75rem; color: var(--c-text-muted);">{{ res.book.author.name }}</div>
+                            <div style="font-size: var(--text-2xs); color: var(--c-text-muted);">{{ res.book.author.name }}</div>
                         </td>
                         <td style="vertical-align: middle;">
                             {% if res.book_copy %}
-                                <span style="font-family: monospace; font-size: 0.82rem;">{{ res.book_copy.inventory_number }}</span>
+                                <span style="font-family: monospace; font-size: var(--text-caption);">{{ res.book_copy.inventory_number }}</span>
                             {% else %}<span style="color: var(--c-text-muted);">—</span>{% endif %}
                         </td>
                         <td style="vertical-align: middle; color: var(--c-text-muted);">
                             {{ res.due_date|date:"d.m.Y"|default:"—" }}
                         </td>
-                        <td style="vertical-align: middle; text-align: right; padding-right: 1rem;">
+                        <td style="vertical-align: middle; text-align: right; padding-right: var(--space-md);">
                             <a href="{% url 'staff_confirm_return' res.id %}" class="btn btn-sm"
-                               style="background: #f59e0b; color: #000; font-size: 0.75rem; font-weight: 600;">
+                               style="background: var(--c-status-queue); color: var(--c-black); font-size: var(--text-2xs); font-weight: 600;">
                                 <i class="bi bi-clipboard-check me-1"></i>Проверить
                             </a>
                         </td>
@@ -114,7 +114,7 @@
 
 <!-- PENDING: ожидают выдачи -->
 <div class="mb-5">
-    <h2 class="section-title" style="font-size: 1.1rem;">
+    <h2 class="section-title" style="font-size: var(--text-lg);">
         Ожидают выдачи
         <span class="section-divider"></span>
     </h2>
@@ -122,42 +122,42 @@
     {% if pending %}
     <div class="card" style="border: none;">
         <div class="table-responsive">
-            <table class="table table-hover mb-0" style="font-size: 0.85rem;">
+            <table class="table table-hover mb-0" style="font-size: var(--text-xs);">
                 <thead>
                     <tr style="border-bottom: 2px solid var(--c-light-3);">
-                        <th style="font-weight: 700; color: var(--c-text-muted); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.06em; padding: 0.75rem 1rem;">Читатель</th>
-                        <th style="font-weight: 700; color: var(--c-text-muted); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.06em;">Книга</th>
-                        <th style="font-weight: 700; color: var(--c-text-muted); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.06em;">Экземпляр</th>
-                        <th style="font-weight: 700; color: var(--c-text-muted); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.06em;">Забрать до</th>
+                        <th style="font-weight: 700; color: var(--c-text-muted); font-size: var(--text-2xs); text-transform: uppercase; letter-spacing: 0.06em; padding: var(--space-sm) var(--space-md);">Читатель</th>
+                        <th style="font-weight: 700; color: var(--c-text-muted); font-size: var(--text-2xs); text-transform: uppercase; letter-spacing: 0.06em;">Книга</th>
+                        <th style="font-weight: 700; color: var(--c-text-muted); font-size: var(--text-2xs); text-transform: uppercase; letter-spacing: 0.06em;">Экземпляр</th>
+                        <th style="font-weight: 700; color: var(--c-text-muted); font-size: var(--text-2xs); text-transform: uppercase; letter-spacing: 0.06em;">Забрать до</th>
                         <th></th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for res in pending %}
                     <tr>
-                        <td style="padding: 0.85rem 1rem; vertical-align: middle;">
+                        <td style="padding: var(--space-sm-plus) var(--space-md); vertical-align: middle;">
                             <div style="font-weight: 600;">{{ res.user.get_full_name|default:res.user.username }}</div>
-                            <div style="font-size: 0.75rem; color: var(--c-text-muted);">@{{ res.user.username }}</div>
+                            <div style="font-size: var(--text-2xs); color: var(--c-text-muted);">@{{ res.user.username }}</div>
                         </td>
                         <td style="vertical-align: middle;">
                             <div style="font-weight: 600;">{{ res.book.title|truncatechars:40 }}</div>
-                            <div style="font-size: 0.75rem; color: var(--c-text-muted);">{{ res.book.author.name }}</div>
+                            <div style="font-size: var(--text-2xs); color: var(--c-text-muted);">{{ res.book.author.name }}</div>
                         </td>
                         <td style="vertical-align: middle;">
                             {% if res.book_copy %}
-                                <span style="font-family: monospace; font-size: 0.82rem;">{{ res.book_copy.inventory_number }}</span>
+                                <span style="font-family: monospace; font-size: var(--text-caption);">{{ res.book_copy.inventory_number }}</span>
                             {% else %}
                                 <span style="color: var(--c-text-muted);">—</span>
                             {% endif %}
                         </td>
                         <td style="vertical-align: middle;">
                             {% now "d.m.Y" as today %}
-                            <span style="font-weight: 600; {% if res.expires_at.date < today|date:'Y-m-d' %}color: #ef4444;{% endif %}">
+                            <span style="font-weight: 600; {% if res.expires_at.date < today|date:'Y-m-d' %}color: var(--c-danger);{% endif %}">
                                 {{ res.expires_at|date:"d.m.Y" }}
                             </span>
                         </td>
-                        <td style="vertical-align: middle; text-align: right; padding-right: 1rem;">
-                            <a href="{% url 'staff_confirm_return' res.id %}" class="btn btn-outline-secondary btn-sm" style="font-size: 0.75rem;">
+                        <td style="vertical-align: middle; text-align: right; padding-right: var(--space-md);">
+                            <a href="{% url 'staff_confirm_return' res.id %}" class="btn btn-outline-secondary btn-sm" style="font-size: var(--text-2xs);">
                                 Подробнее
                             </a>
                         </td>
@@ -168,13 +168,13 @@
         </div>
     </div>
     {% else %}
-    <p style="color: var(--c-text-muted); font-size: 0.88rem;">Нет бронирований, ожидающих выдачи.</p>
+    <p style="color: var(--c-text-muted); font-size: var(--text-sm);">Нет бронирований, ожидающих выдачи.</p>
     {% endif %}
 </div>
 
 <!-- ACTIVE: на руках -->
 <div class="mb-5">
-    <h2 class="section-title" style="font-size: 1.1rem;">
+    <h2 class="section-title" style="font-size: var(--text-lg);">
         На руках у читателей
         <span class="section-divider"></span>
     </h2>
@@ -182,30 +182,30 @@
     {% if active %}
     <div class="card" style="border: none;">
         <div class="table-responsive">
-            <table class="table table-hover mb-0" style="font-size: 0.85rem;">
+            <table class="table table-hover mb-0" style="font-size: var(--text-xs);">
                 <thead>
                     <tr style="border-bottom: 2px solid var(--c-light-3);">
-                        <th style="font-weight: 700; color: var(--c-text-muted); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.06em; padding: 0.75rem 1rem;">Читатель</th>
-                        <th style="font-weight: 700; color: var(--c-text-muted); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.06em;">Книга</th>
-                        <th style="font-weight: 700; color: var(--c-text-muted); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.06em;">Экземпляр</th>
-                        <th style="font-weight: 700; color: var(--c-text-muted); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.06em;">Вернуть до</th>
+                        <th style="font-weight: 700; color: var(--c-text-muted); font-size: var(--text-2xs); text-transform: uppercase; letter-spacing: 0.06em; padding: var(--space-sm) var(--space-md);">Читатель</th>
+                        <th style="font-weight: 700; color: var(--c-text-muted); font-size: var(--text-2xs); text-transform: uppercase; letter-spacing: 0.06em;">Книга</th>
+                        <th style="font-weight: 700; color: var(--c-text-muted); font-size: var(--text-2xs); text-transform: uppercase; letter-spacing: 0.06em;">Экземпляр</th>
+                        <th style="font-weight: 700; color: var(--c-text-muted); font-size: var(--text-2xs); text-transform: uppercase; letter-spacing: 0.06em;">Вернуть до</th>
                         <th></th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for res in active %}
                     <tr>
-                        <td style="padding: 0.85rem 1rem; vertical-align: middle;">
+                        <td style="padding: var(--space-sm-plus) var(--space-md); vertical-align: middle;">
                             <div style="font-weight: 600;">{{ res.user.get_full_name|default:res.user.username }}</div>
-                            <div style="font-size: 0.75rem; color: var(--c-text-muted);">@{{ res.user.username }}</div>
+                            <div style="font-size: var(--text-2xs); color: var(--c-text-muted);">@{{ res.user.username }}</div>
                         </td>
                         <td style="vertical-align: middle;">
                             <div style="font-weight: 600;">{{ res.book.title|truncatechars:40 }}</div>
-                            <div style="font-size: 0.75rem; color: var(--c-text-muted);">{{ res.book.author.name }}</div>
+                            <div style="font-size: var(--text-2xs); color: var(--c-text-muted);">{{ res.book.author.name }}</div>
                         </td>
                         <td style="vertical-align: middle;">
                             {% if res.book_copy %}
-                                <span style="font-family: monospace; font-size: 0.82rem;">{{ res.book_copy.inventory_number }}</span>
+                                <span style="font-family: monospace; font-size: var(--text-caption);">{{ res.book_copy.inventory_number }}</span>
                             {% else %}
                                 <span style="color: var(--c-text-muted);">—</span>
                             {% endif %}
@@ -215,8 +215,8 @@
                                 {{ res.due_date|date:"d.m.Y"|default:"—" }}
                             </span>
                         </td>
-                        <td style="vertical-align: middle; text-align: right; padding-right: 1rem;">
-                            <a href="{% url 'staff_confirm_return' res.id %}" class="btn btn-primary btn-sm" style="font-size: 0.75rem;">
+                        <td style="vertical-align: middle; text-align: right; padding-right: var(--space-md);">
+                            <a href="{% url 'staff_confirm_return' res.id %}" class="btn btn-primary btn-sm" style="font-size: var(--text-2xs);">
                                 <i class="bi bi-arrow-return-left me-1"></i>Принять возврат
                             </a>
                         </td>
@@ -227,37 +227,37 @@
         </div>
     </div>
     {% else %}
-    <p style="color: var(--c-text-muted); font-size: 0.88rem;">Книг на руках нет.</p>
+    <p style="color: var(--c-text-muted); font-size: var(--text-sm);">Книг на руках нет.</p>
     {% endif %}
 </div>
 
 <!-- QUEUE -->
 {% if queue %}
 <div class="mb-5">
-    <h2 class="section-title" style="font-size: 1.1rem;">
+    <h2 class="section-title" style="font-size: var(--text-lg);">
         Очередь ожидания
         <span class="section-divider"></span>
     </h2>
     <div class="card" style="border: none;">
         <div class="table-responsive">
-            <table class="table table-hover mb-0" style="font-size: 0.85rem;">
+            <table class="table table-hover mb-0" style="font-size: var(--text-xs);">
                 <thead>
                     <tr style="border-bottom: 2px solid var(--c-light-3);">
-                        <th style="font-weight: 700; color: var(--c-text-muted); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.06em; padding: 0.75rem 1rem;">#</th>
-                        <th style="font-weight: 700; color: var(--c-text-muted); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.06em;">Читатель</th>
-                        <th style="font-weight: 700; color: var(--c-text-muted); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.06em;">Книга</th>
-                        <th style="font-weight: 700; color: var(--c-text-muted); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.06em;">Ждёт с</th>
+                        <th style="font-weight: 700; color: var(--c-text-muted); font-size: var(--text-2xs); text-transform: uppercase; letter-spacing: 0.06em; padding: var(--space-sm) var(--space-md);">#</th>
+                        <th style="font-weight: 700; color: var(--c-text-muted); font-size: var(--text-2xs); text-transform: uppercase; letter-spacing: 0.06em;">Читатель</th>
+                        <th style="font-weight: 700; color: var(--c-text-muted); font-size: var(--text-2xs); text-transform: uppercase; letter-spacing: 0.06em;">Книга</th>
+                        <th style="font-weight: 700; color: var(--c-text-muted); font-size: var(--text-2xs); text-transform: uppercase; letter-spacing: 0.06em;">Ждёт с</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for res in queue %}
                     <tr>
-                        <td style="padding: 0.85rem 1rem; vertical-align: middle;">
-                            <span style="font-weight: 800; color: var(--c-primary); font-size: 1rem;">{{ res.queue_position }}</span>
+                        <td style="padding: var(--space-sm-plus) var(--space-md); vertical-align: middle;">
+                            <span style="font-weight: 800; color: var(--c-primary); font-size: var(--text-base);">{{ res.queue_position }}</span>
                         </td>
                         <td style="vertical-align: middle;">
                             <div style="font-weight: 600;">{{ res.user.get_full_name|default:res.user.username }}</div>
-                            <div style="font-size: 0.75rem; color: var(--c-text-muted);">@{{ res.user.username }}</div>
+                            <div style="font-size: var(--text-2xs); color: var(--c-text-muted);">@{{ res.user.username }}</div>
                         </td>
                         <td style="vertical-align: middle;">{{ res.book.title|truncatechars:40 }}</td>
                         <td style="vertical-align: middle; color: var(--c-text-muted);">{{ res.reserved_at|date:"d.m.Y" }}</td>
@@ -272,26 +272,26 @@
 
 <!-- RECENT RETURNS -->
 <div>
-    <h2 class="section-title" style="font-size: 1.1rem;">
+    <h2 class="section-title" style="font-size: var(--text-lg);">
         Недавние возвраты
         <span class="section-divider"></span>
     </h2>
     {% if completed_recent %}
     <div class="card" style="border: none;">
         <div class="table-responsive">
-            <table class="table table-hover mb-0" style="font-size: 0.85rem;">
+            <table class="table table-hover mb-0" style="font-size: var(--text-xs);">
                 <thead>
                     <tr style="border-bottom: 2px solid var(--c-light-3);">
-                        <th style="font-weight: 700; color: var(--c-text-muted); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.06em; padding: 0.75rem 1rem;">Читатель</th>
-                        <th style="font-weight: 700; color: var(--c-text-muted); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.06em;">Книга</th>
-                        <th style="font-weight: 700; color: var(--c-text-muted); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.06em;">Возвращена</th>
-                        <th style="font-weight: 700; color: var(--c-text-muted); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.06em;">Состояние</th>
+                        <th style="font-weight: 700; color: var(--c-text-muted); font-size: var(--text-2xs); text-transform: uppercase; letter-spacing: 0.06em; padding: var(--space-sm) var(--space-md);">Читатель</th>
+                        <th style="font-weight: 700; color: var(--c-text-muted); font-size: var(--text-2xs); text-transform: uppercase; letter-spacing: 0.06em;">Книга</th>
+                        <th style="font-weight: 700; color: var(--c-text-muted); font-size: var(--text-2xs); text-transform: uppercase; letter-spacing: 0.06em;">Возвращена</th>
+                        <th style="font-weight: 700; color: var(--c-text-muted); font-size: var(--text-2xs); text-transform: uppercase; letter-spacing: 0.06em;">Состояние</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for res in completed_recent %}
                     <tr>
-                        <td style="padding: 0.85rem 1rem; vertical-align: middle;">
+                        <td style="padding: var(--space-sm-plus) var(--space-md); vertical-align: middle;">
                             {{ res.user.get_full_name|default:res.user.username }}
                         </td>
                         <td style="vertical-align: middle;">{{ res.book.title|truncatechars:40 }}</td>
@@ -299,11 +299,11 @@
                         <td style="vertical-align: middle;">
                             {% if res.book_copy %}
                                 {% if res.book_copy.condition == 'good' %}
-                                    <span style="color: #4ade80; font-size: 0.78rem; font-weight: 600;">Хорошее</span>
+                                    <span style="color: var(--c-status-available); font-size: var(--text-2xs); font-weight: 600;">Хорошее</span>
                                 {% elif res.book_copy.condition == 'fair' %}
-                                    <span style="color: #f59e0b; font-size: 0.78rem; font-weight: 600;">Удовл.</span>
+                                    <span style="color: var(--c-status-queue); font-size: var(--text-2xs); font-weight: 600;">Удовл.</span>
                                 {% else %}
-                                    <span style="color: #ef4444; font-size: 0.78rem; font-weight: 600;">Плохое</span>
+                                    <span style="color: var(--c-danger); font-size: var(--text-2xs); font-weight: 600;">Плохое</span>
                                 {% endif %}
                             {% else %}—{% endif %}
                         </td>
@@ -314,7 +314,7 @@
         </div>
     </div>
     {% else %}
-    <p style="color: var(--c-text-muted); font-size: 0.88rem;">Возвратов пока нет.</p>
+    <p style="color: var(--c-text-muted); font-size: var(--text-sm);">Возвратов пока нет.</p>
     {% endif %}
 </div>
 

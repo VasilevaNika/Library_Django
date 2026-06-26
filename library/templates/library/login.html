@@ -1,7 +1,7 @@
 {% extends 'library/base.html' %}
 
 {% block content %}
-<div class="row justify-content-center" style="margin-top: 2rem;">
+<div class="row justify-content-center" style="margin-top: var(--space-xl);">
     <div class="col-sm-10 col-md-7 col-lg-5">
 
         <!-- BRAND MARK -->
@@ -11,20 +11,20 @@
                 width: 56px; height: 56px;
                 background: var(--c-dark);
                 border-radius: var(--radius-lg);
-                margin-bottom: 1rem;
+                margin-bottom: var(--space-md);
             ">
                 <i class="bi bi-book-half" style="font-size: 1.6rem; color: var(--c-primary);"></i>
             </div>
-            <h1 style="font-size: 1.5rem; font-weight: 900; letter-spacing: -0.03em; margin-bottom: 0.25rem;">
+            <h1 style="font-size: var(--text-title-md); font-weight: 900; letter-spacing: -0.03em; margin-bottom: var(--space-xxs);">
                 Войти <span style="color: var(--c-primary);">Между строк</span>
             </h1>
-            <p style="color: var(--c-text-muted); font-size: 0.88rem;">
+            <p style="color: var(--c-text-muted); font-size: var(--text-sm);">
                 Добро пожаловать обратно
             </p>
         </div>
 
         <div class="card" style="border: none; box-shadow: var(--shadow-lg);">
-            <div class="card-body" style="padding: 2rem;">
+            <div class="card-body" style="padding: var(--space-xl);">
 
                 {% if messages %}
                     {% for message in messages %}
@@ -76,21 +76,21 @@
                         </div>
                     </div>
 
-                    <button type="submit" class="btn btn-primary w-100" style="padding: 0.75rem; font-size: 0.95rem;">
+                    <button type="submit" class="btn btn-primary w-100" style="padding: var(--space-sm); font-size: var(--text-body-sm);">
                         Войти
                     </button>
                 </form>
 
                 <div style="
                     margin-top: 1.75rem;
-                    padding-top: 1.5rem;
+                    padding-top: var(--space-lg);
                     border-top: 1px solid var(--c-light-3);
                     text-align: center;
                 ">
-                    <p style="color: var(--c-text-muted); font-size: 0.88rem; margin-bottom: 0.75rem;">
+                    <p style="color: var(--c-text-muted); font-size: var(--text-sm); margin-bottom: var(--space-sm);">
                         Ещё нет аккаунта?
                     </p>
-                    <a href="{% url 'register' %}" class="btn btn-outline-primary btn-sm" style="padding: 0.5rem 1.5rem;">
+                    <a href="{% url 'register' %}" class="btn btn-outline-primary btn-sm" style="padding: var(--space-xs) var(--space-lg);">
                         Зарегистрироваться
                     </a>
                 </div>
