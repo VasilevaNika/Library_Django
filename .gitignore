@@ -5,6 +5,9 @@ __pycache__/
 *$py.class
 *.pyc
 app.log
+venv/
+staticfiles/
+media/
 
 # Тестовые артефакты (генерируются pytest --cov)
 coverage.xml
